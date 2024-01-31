@@ -1,0 +1,7 @@
+backend/dist
+backend/build
+backend/venv
+frontend/build
+node_modules
+.DS_Store
+backend/.DS_Store
