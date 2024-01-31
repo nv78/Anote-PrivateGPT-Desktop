@@ -662,65 +662,65 @@ def add_model_key_to_db(model_key, chat_id, user_email):
     conn.commit()
 
 #For edgar
-queryApi = QueryApi(api_key=sec_api_key)
+#queryApi = QueryApi(api_key=sec_api_key)
 
-def check_valid_api(ticker):
-    print("ticker backend is", ticker)
-    year = 2023
-
-    ticker_query = 'ticker:({})'.format(ticker)
-    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
-
-    query = {
-        "query": { "query_string": { 
-            "query": query_string,
-            "time_zone": "America/New_York"
-        } },
-        "from": "0",
-        "size": "200",
-        "sort": [{ "filedAt": { "order": "desc" } }]
-      }
-
-
-    response = queryApi.get_filings(query)
-
-    filings = response['filings']
-
-    if not filings:
-        return False
-    else:
-        return True
+#def check_valid_api(ticker):
+#    print("ticker backend is", ticker)
+#    year = 2023
+#
+#    ticker_query = 'ticker:({})'.format(ticker)
+#    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
+#
+#    query = {
+#        "query": { "query_string": { 
+#            "query": query_string,
+#            "time_zone": "America/New_York"
+#        } },
+#        "from": "0",
+#        "size": "200",
+#        "sort": [{ "filedAt": { "order": "desc" } }]
+#      }
+#
+#    
+#    #response = queryApi.get_filings(query)
+#
+#    filings = response['filings']
+#
+#    if not filings:
+#        return False
+#    else:
+#        return True
     
 
-def download_10K_url_ticker(ticker):
-    year = 2023
-
-    ticker_query = 'ticker:({})'.format(ticker)
-    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
-
-    query = {
-        "query": { "query_string": { 
-            "query": query_string,
-            "time_zone": "America/New_York"
-        } },
-        "from": "0",
-        "size": "200",
-        "sort": [{ "filedAt": { "order": "desc" } }]
-      }
-
-
-    response = queryApi.get_filings(query)
-
-    filings = response['filings']
-
-    if filings:
-       ticker=filings[0]['ticker']
-       url=filings[0]['linkToFilingDetails']
-    else:
-       ticker = None
-       url = None
-    
-    return url, ticker
+#def download_10K_url_ticker(ticker):
+#    year = 2023
+#
+#    ticker_query = 'ticker:({})'.format(ticker)
+#    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
+#
+#    query = {
+#        "query": { "query_string": { 
+#            "query": query_string,
+#            "time_zone": "America/New_York"
+#        } },
+#        "from": "0",
+#        "size": "200",
+#        "sort": [{ "filedAt": { "order": "desc" } }]
+#      }
+#
+#
+#    response = queryApi.get_filings(query)
+#
+#    filings = response['filings']
+#
+#    if filings:
+#       ticker=filings[0]['ticker']
+#       url=filings[0]['linkToFilingDetails']
+#    else:
+#       ticker = None
+#       url = None
+#    
+#    return url, ticker
 
 def download_filing_as_pdf(url, ticker):
     API_ENDPOINT = "https://api.sec-api.io/filing-reader"

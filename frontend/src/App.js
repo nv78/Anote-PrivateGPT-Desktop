@@ -1,4 +1,5 @@
 import Dashboard from "./Dashboard";
+import Test from "./financeGPT/components/Test.js"
 // import MetricsRoutes from "./metrics_components/MetricsRoutes";
 // import ReactGA4 from "react-ga4";
 import { HashRouter as Router } from "react-router-dom";
@@ -7,7 +8,7 @@ import { HashRouter as Router } from "react-router-dom";
 function App() {
     return (
         <Router>
-            <Dashboard />
+            <Test />
         </Router>
     );
 }

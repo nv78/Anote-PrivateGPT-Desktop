@@ -1,4 +1,5 @@
-const API_ENDPOINT = process.env.REACT_APP_BACK_END_HOST;
+//const API_ENDPOINT = process.env.REACT_APP_BACK_END_HOST;
+const API_ENDPOINT = "http://127.0.0.1:5000";
 
 export function defaultHeaders() {
   const accessToken = localStorage.getItem("accessToken");
@@ -65,23 +66,24 @@ function fetcher(url, options = {}, retryCount = 0) {
     }
     return response;
   }).catch(
-    (error) => {
-      if (retryCount <= maxRetries) {
-        return refreshAccessToken().then((response) => {
-          if (!response.ok) {
-            // Return a rejected promise if the response is not successful
-            throw new Error;
-          }
-          return fetcher(url, options, retryCount + 1);
-        }).catch(
-          (error) => {
-            return Promise.reject(error);
-          }
-        );
-      } else {
-        return Promise.reject(error);
-      }
-    }
+    console.log("error")
+    //(error) => {
+    //  if (retryCount <= maxRetries) {
+    //    return refreshAccessToken().then((response) => {
+    //      if (!response.ok) {
+    //        // Return a rejected promise if the response is not successful
+    //        throw new Error;
+    //      }
+    //      return fetcher(url, options, retryCount + 1);
+    //    }).catch(
+    //      (error) => {
+    //        return Promise.reject(error);
+    //      }
+    //    );
+    //  } else {
+    //    return Promise.reject(error);
+    //  }
+    //}
   );
 }
 
