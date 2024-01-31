@@ -12,17 +12,19 @@ To Run the code:
 4. Build the backend
 `pyinstaller --onefile app.py`
 
-5. Open frontend folder in terminal
+Note: might have to do `pyinstaller --onefile app.py --hidden-import flask`
+
+6. Open frontend folder in terminal
 `cd ..`
 `cd frontend`
 
-6. Install dependencies and Build react app
+7. Install dependencies and Build react app
 `npm install --force`
 `npm run build`
 
-7. Go back to main folder
+8. Go back to main folder
 `cd ..`
 
-8. Install all dependencies and run electron
+9. Install all dependencies and run electron
 `npm install`
 `npm start`
