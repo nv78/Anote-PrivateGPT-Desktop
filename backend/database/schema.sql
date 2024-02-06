@@ -8,61 +8,53 @@ DROP TABLE IF EXISTS documents;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS chats;
 DROP TABLE IF EXISTS reports;
-DROP TABLE IF EXISTS workflows;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS freeTrialAllowlist;
 
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    google_id VARCHAR(255),
-    person_name VARCHAR(255),
-    profile_pic_url VARCHAR(255),
-    password_hash VARCHAR(255),
-    salt VARCHAR(255),
-    session_token VARCHAR(255),
-    session_token_expiration TIMESTAMP,
-    password_reset_token VARCHAR(255),
-    password_reset_token_expiration TIMESTAMP,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_token TEXT,
+    session_token_expiration TEXT,
+    password_reset_token TEXT,
+    password_reset_token_expiration TEXT,
     credits INTEGER NOT NULL DEFAULT 0,
-    credits_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    chat_gpt_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    credits_updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    chat_gpt_date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     num_chatgpt_requests INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE StripeInfo (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    stripe_customer_id VARCHAR(255),
-    last_webhook_received TIMESTAMP,
-    anchor_date TIMESTAMP,
+    stripe_customer_id TEXT,
+    last_webhook_received TEXT,
+    anchor_date TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE Subscriptions (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     stripe_info_id INTEGER NOT NULL,
-    subscription_id VARCHAR(255) NOT NULL,
-    start_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    end_date TIMESTAMP, -- NULL if the subscription is active.
+    subscription_id TEXT NOT NULL,
+    start_date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_date TEXT, -- NULL if the subscription is active.
     paid_user INTEGER NOT NULL,
     is_free_trial INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (stripe_info_id) REFERENCES StripeInfo(id)
 );
 
 CREATE TABLE freeTrialAllowlist (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    email VARCHAR(255),
-    token VARCHAR(255),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email TEXT,
+    token TEXT,
     max_non_email_count INTEGER NOT NULL DEFAULT 0,
-    token_expiration TIMESTAMP
+    token_expiration TEXT
 );
 
 CREATE TABLE freeTrialsAccessed (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     free_trial_allow_list_id INTEGER,
     user_id INTEGER,
     FOREIGN KEY (free_trial_allow_list_id) REFERENCES freeTrialAllowlist(id),
@@ -70,10 +62,10 @@ CREATE TABLE freeTrialsAccessed (
 );
 
 CREATE TABLE chats (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER NOT NULL,
-    model_type TINYINT NOT NULL DEFAULT 0,
+    model_type INTEGER NOT NULL DEFAULT 0,
     chat_name TEXT,
     ticker TEXT,
     associated_task INTEGER NOT NULL,
@@ -82,8 +74,8 @@ CREATE TABLE chats (
 );
 
 CREATE TABLE messages (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     message_text TEXT NOT NULL,
     chat_id INTEGER NOT NULL,
     sent_from_user INTEGER NOT NULL,
@@ -91,71 +83,28 @@ CREATE TABLE messages (
     FOREIGN KEY (chat_id) REFERENCES chats(id)
 );
 
-CREATE TABLE workflows (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    workflow_name VARCHAR(255), -- Why is this an ARRAY?
-    user_id INTEGER NOT NULL,
-    tickers VARCHAR(255)[] DEFAULT '{}', -- ticker column for financial reports workflow 
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
 CREATE TABLE documents (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    workflow_id INTEGER,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     chat_id INTEGER,
     storage_key TEXT NOT NULL,
-    document_name VARCHAR(255) NOT NULL,
-    document_text LONGTEXT NOT NULL,
-    FOREIGN KEY (workflow_id) REFERENCES workflows(id),
+    document_name TEXT NOT NULL,
+    document_text TEXT NOT NULL,
     FOREIGN KEY (chat_id) REFERENCES chats(id)
 );
 
 CREATE TABLE chunks (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     start_index INTEGER,
     end_index INTEGER,
     document_id INTEGER NOT NULL,
-    embedding_vector BLOB,
+    embedding_vector BLOB, -- Assuming you store binary data here
     page_number INTEGER,
     FOREIGN KEY (document_id) REFERENCES documents(id)
 );
 
-CREATE TABLE prompts (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    workflow_id INTEGER NOT NULL,
-    prompt_text TEXT NOT NULL,
-    FOREIGN KEY (workflow_id) REFERENCES workflows(id)
-);
-
-CREATE TABLE prompt_answers (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    prompt_id INTEGER NOT NULL,
-    citation_id INTEGER NOT NULL,
-    answer_text TEXT,
-    FOREIGN KEY (prompt_id) REFERENCES prompts(id),
-    FOREIGN KEY (citation_id) REFERENCES chunks(id)
-);
-
-CREATE TABLE reports (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    workflow_id INTEGER NOT NULL,
-    report_name VARCHAR(255),
-    storage_key TEXT NOT NULL,
-    FOREIGN KEY (workflow_id) REFERENCES workflows(id)
-);
-
-CREATE UNIQUE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_chats_user_id ON chats(user_id);
 CREATE INDEX idx_messages_chat_id ON messages(chat_id);
 CREATE INDEX idx_messages_sent_from_user ON messages(sent_from_user);
-CREATE INDEX idx_workflows_user_id ON workflows(user_id);
-CREATE INDEX idx_documents_workflow_id ON documents(workflow_id);
 CREATE INDEX idx_documents_chat_id ON documents(chat_id);
 CREATE INDEX idx_chunks_document_id ON chunks(document_id);
-CREATE INDEX idx_prompts_workflow_id ON prompts(workflow_id);
-CREATE INDEX idx_prompt_answers_prompt_id ON prompt_answers(prompt_id);
-CREATE INDEX idx_prompt_answers_citation_id ON prompt_answers(citation_id);
-CREATE INDEX idx_reports_workflow_id ON reports(workflow_id);

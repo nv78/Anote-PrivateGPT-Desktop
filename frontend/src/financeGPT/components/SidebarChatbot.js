@@ -68,6 +68,7 @@ function SidebarChatbot(props) {
     });
 
     const response_data = await response.json();
+    console.log("THE RESPONE Is", response_data);
     setDocs(response_data.doc_info);
   };
 
