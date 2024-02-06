@@ -66,7 +66,7 @@ function fetcher(url, options = {}, retryCount = 0) {
     }
     return response;
   }).catch(
-    console.log("error")
+    console.log("there is an error")
     //(error) => {
     //  if (retryCount <= maxRetries) {
     //    return refreshAccessToken().then((response) => {

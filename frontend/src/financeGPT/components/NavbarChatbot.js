@@ -21,7 +21,6 @@ function NavbarChatbot(props) {
   urlObject.hostname = `dashboard.${hostname}`;
 
   useEffect(() => {
-    console.log("test");
     //changeChatMode(props.isPrivate);
     props.handleForceUpdate();
   }, [props.isPrivate]);

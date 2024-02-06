@@ -253,7 +253,6 @@ function ChatHistory(props) {
         <div
           key={chat.id}
           onClick={() => {
-            console.log("test");
             props.onChatSelect(chat.id);
             props.setIsPrivate(chat.model_type);
             props.setTicker(chat.ticker);
