@@ -251,8 +251,9 @@ function ChatHistory(props) {
       {/* Map through chats */}
       {chats.map((chat) => (
         <div
-          key={chat.id}
+          key={chat[0]}
           onClick={() => {
+            console.log("NAME OF CHAT IS", chat[2])
             props.onChatSelect(chat.id);
             props.setIsPrivate(chat.model_type);
             props.setTicker(chat.ticker);
