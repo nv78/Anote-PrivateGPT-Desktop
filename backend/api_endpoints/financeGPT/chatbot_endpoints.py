@@ -14,6 +14,8 @@ import PyPDF2
 from sec_api import QueryApi, RenderApi
 import requests
 
+import sqlite3
+
 # from openai import OpenAI
 
 # """Module for fetching data from the SEC EDGAR Archives"""
@@ -30,8 +32,6 @@ if sys.version_info < (3, 8):
 else:
     from typing import Final
 
-from database.db import get_db_connection
-
 load_dotenv()
 API_KEY = os.getenv('OPENAI_API_KEY')
 embeddings = OpenAIEmbeddings(openai_api_key= API_KEY)
@@ -39,13 +39,22 @@ sec_api_key = os.getenv('SEC_API_KEY')
 
 MAX_CHUNK_SIZE = 1000
 
+
+
+def get_db_connection():
+    db_path = 'database.db'
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    return conn, cursor
+
 ## General for all chatbots
 # Chat_type is an integer where 0=chatbot, 1=Edgar, 2=PDFUploader, etc
 def add_chat_to_db(user_email, chat_type, model_type): #intake the current userID and the model type into the chat table
     conn, cursor = get_db_connection()
 
-    cursor.execute("SELECT id FROM users WHERE email = %s", [user_email])
-    user_id = cursor.fetchone()['id']
+    user_id = 0
 
     cursor.execute('INSERT INTO chats (user_id, model_type, associated_task) VALUES (%s, %s, %s)', (user_id, model_type, chat_type))
     chat_id = cursor.lastrowid

@@ -5,10 +5,12 @@ import Test from "./financeGPT/components/Test.js"
 import { HashRouter as Router } from "react-router-dom";
 // ReactGA4.initialize("G-PNX85JC0CV");
 
+import HomeChatbot from "./financeGPT/components/Home.js"
+
 function App() {
     return (
         <Router>
-            <Test />
+            <HomeChatbot />
         </Router>
     );
 }
