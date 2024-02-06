@@ -32,5 +32,9 @@ INSERT INTO users (
 
 cur.execute(sql)
 
+cur.execute('SELECT * FROM users')
+users = cur.fetchall()
+print(users)
+
 connection.commit()
 connection.close()
