@@ -3,6 +3,8 @@ import os
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
+import ray
+import numpy as np
 
 
 API_KEY = os.getenv('OPENAI_API_KEY')
@@ -75,6 +77,80 @@ def retrieve_message_from_db(chat_id, chat_type):
 
     return messages
 
+def find_most_recent_chat_from_db():
+    conn, cursor = get_db_connection()
+
+    query = """
+        SELECT chats.id, chats.chat_name
+        FROM chats
+        JOIN users ON chats.user_id = users.id
+        WHERE users.id = ?
+        ORDER BY chats.created DESC
+        LIMIT 1;
+    """
+
+    # Execute the query
+    cursor.execute(query, (USER_ID,))
+    chat_info = cursor.fetchone()
+
+    conn.commit()
+    conn.close()
+
+    return chat_info
+
+def add_document_to_db(text, document_name, chat_id):
+    conn, cursor = get_db_connection()
+
+    cursor.execute("SELECT id, document_text FROM documents WHERE document_name = ? AND chat_id = ?", (document_name, chat_id))
+    existing_doc = cursor.fetchone()
+
+    if existing_doc:
+        existing_doc_id, existing_doc_text = existing_doc
+        print("Doc named ", document_name, " exists. Do not create a new entry")
+        conn.close()
+        return existing_doc_id, True  # Returning the ID of the existing document
+
+
+    storage_key = "temp"
+    cursor.execute("INSERT INTO documents (chat_id, document_name, document_text, storage_key) VALUES (?, ?, ?, ?)", (chat_id, document_name, text, storage_key))
+
+    doc_id = cursor.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return doc_id, False
+
+@ray.remote
+def chunk_document(text, maxChunkSize, document_id):
+    conn, cursor = get_db_connection()
+
+    chunks = []
+    startIndex = 0
+
+    while startIndex < len(text):
+        endIndex = startIndex + min(maxChunkSize, len(text))
+        chunkText = text[startIndex:endIndex]
+        chunkText = chunkText.replace("\n", "")
+
+        embeddingVector = openai.embeddings.create(input=chunkText, model="text-embedding-ada-002").data[0].embedding
+        embeddingVector = np.array(embeddingVector)
+        blob = embeddingVector.tobytes()
+        chunks.append({
+            "text": chunkText,
+            "start_index": startIndex,
+            "end_index": endIndex,
+            "embedding_vector": embeddingVector,
+            "embedding_vector_blob": blob,
+        })
+        startIndex += maxChunkSize
+
+    for chunk in chunks:
+        cursor.execute('INSERT INTO chunks (start_index, end_index, document_id, embedding_vector) VALUES (?,?,?,?)', [chunk["start_index"], chunk["end_index"], document_id, chunk["embedding_vector_blob"]])
+
+    conn.commit()
+    conn.close()
+
 
 def retrieve_docs_from_db(chat_id):
     conn, cursor = get_db_connection()
@@ -106,7 +182,7 @@ def delete_doc_from_db(doc_id):
             FROM documents d
             JOIN chats c ON d.chat_id = c.id
             JOIN users u ON c.user_id = u.id
-            WHERE u.id = %s AND d.id = %s
+            WHERE u.id = ? AND d.id = ?
         """
     cursor.execute(verification_query, (USER_ID, doc_id))
     verification_result = cursor.fetchone()

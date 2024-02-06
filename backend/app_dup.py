@@ -532,7 +532,6 @@ def find_most_recent_chat():
 def ingest_pdfs():
     chat_id = request.form.getlist('chat_id')[0]
 
-    #files = request.files.getlist('files')
     files = request.files.getlist('files[]')
 
     MAX_CHUNK_SIZE = 1000
@@ -550,9 +549,6 @@ def ingest_pdfs():
 
     
     return jsonify({"error": "Invalid JWT"}), 200
-
-
-    #return text, filename
 
 @app.route('/api/ingest-pdf-wf', methods=['POST'])
 def ingest_pdfs_wf():

@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, abort, redirect, send_file
 from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
+from tika import parser as p
 
-from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db
+from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
+                                                        find_most_recent_chat_from_db, add_document_to_db, chunk_document
 
 
 
@@ -56,6 +58,36 @@ def retrieve_messages_from_chat():
 
     return jsonify(messages=messages)
 
+
+@app.route('/find-most-recent-chat', methods=['POST'])
+def find_most_recent_chat():
+    chat_info = find_most_recent_chat_from_db()
+
+    return jsonify(chat_info=chat_info)
+
+
+@app.route('/ingest-pdf', methods=['POST'])
+def ingest_pdfs():
+    chat_id = request.form.getlist('chat_id')[0]
+
+    files = request.files.getlist('files[]')
+
+    MAX_CHUNK_SIZE = 1000
+
+
+    for file in files:
+        result = p.from_buffer(file)
+        text = result["content"].strip()
+
+        filename = file.filename
+
+        doc_id, doesExist = add_document_to_db(text, filename, chat_id=chat_id)
+
+        if not doesExist:
+           chunk_document.remote(text, MAX_CHUNK_SIZE, doc_id)
+
+    
+    return jsonify({"error": "Invalid JWT"}), 200
 
 @app.route('/retrieve-current-docs', methods=['POST'])
 def retrieve_current_docs():
