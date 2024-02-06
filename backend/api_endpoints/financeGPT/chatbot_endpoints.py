@@ -16,6 +16,11 @@ sec_api_key = os.getenv('SEC_API_KEY')
 
 USER_ID = 1
 
+try:
+    import ray._private.memory_monitor
+except ImportError:
+    pass  # Handle the case where the import fails
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
