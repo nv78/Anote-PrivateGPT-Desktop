@@ -5,11 +5,14 @@ from tika import parser as p
 import openai
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 import os
+import csv
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
                                                         find_most_recent_chat_from_db, add_document_to_db, chunk_document, update_chat_name_db, delete_chat_from_db, \
-                                                        reset_chat_db, change_chat_mode_db, add_message_to_db, get_relevant_chunks, add_sources_to_db, add_model_key_to_db
+                                                        reset_chat_db, change_chat_mode_db, add_message_to_db, get_relevant_chunks, add_sources_to_db, add_model_key_to_db, \
+                                                        check_valid_api, reset_uploaded_docs, add_ticker_to_chat_db, download_10K_url_ticker, download_filing_as_pdf, \
+                                                        get_text_from_single_file
 
 
 
@@ -33,6 +36,35 @@ def test_flask():
     print("hello world")
     test = "hello world"
     return jsonify(test=test)
+
+@app.route('/download-chat-history', methods=['POST'])
+def download_chat_history():
+
+    try:
+        chat_type = request.json.get('chat_type')
+        chat_id = request.json.get('chat_id')
+
+        messages = retrieve_message_from_db(chat_id, chat_type)
+
+        paired_messages = []
+        for i in range(len(messages) - 1):
+            if messages[i]['sent_from_user'] == 1 and messages[i+1]['sent_from_user'] == 0:
+                paired_messages.append((messages[i]['message_text'], messages[i+1]['message_text']))
+
+        output_directory = 'output_document'
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
+        file_path = os.path.join(output_directory, 'chat_history.csv')
+
+        with open(file_path, 'w', newline='', encoding='utf-8') as file:
+          writer = csv.writer(file)
+          writer.writerow(['Query', 'Response'])  # Header
+          writer.writerows(paired_messages)
+
+        return "success"
+    except:
+       return "error"
 
 @app.route('/create-new-chat', methods=['POST'])
 def create_new_chat():
@@ -229,6 +261,52 @@ def add_model_key():
 
     return "success"
 
+
+#Edgar
+@app.route('/check-valid-ticker', methods=['POST'])
+def check_valid_ticker():
+   ticker = request.json.get('ticker')
+   result = check_valid_api(ticker)
+   return jsonify({'isValid': result})
+
+@app.route('/add-ticker-to-chat', methods=['POST'])
+def add_ticker():
+
+    ticker = request.json.get('ticker')
+    chat_id = request.json.get('chat_id')
+    isUpdate = request.json.get('isUpdate')
+
+    return add_ticker_to_chat_db(chat_id, ticker, isUpdate)
+
+
+@app.route('/process-ticker-info', methods=['POST'])
+def process_ticker_info():
+    chat_id = request.json.get('chat_id')
+    ticker = request.json.get('ticker')
+
+    if ticker:
+        MAX_CHUNK_SIZE = 1000
+
+        reset_uploaded_docs(chat_id)
+
+        url, ticker = download_10K_url_ticker(ticker)
+        filename = download_filing_as_pdf(url, ticker)
+
+        text = get_text_from_single_file(filename)
+
+        doc_id, doesExist = add_document_to_db(text, filename, chat_id)
+
+        if not doesExist:
+            chunk_document.remote(text, MAX_CHUNK_SIZE, doc_id)
+
+        #if os.path.exists(filename):
+        #    os.remove(filename)
+        #    print(f"File '{filename}' has been deleted.")
+        #else:
+        #    print(f"The file '{filename}' does not exist.")
+
+
+    return jsonify({"error": "Invalid JWT"}), 200
 
 if __name__ == '__main__':
     app.run(port=5000)

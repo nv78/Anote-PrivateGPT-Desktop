@@ -550,6 +550,9 @@ def ingest_pdfs():
     
     return jsonify({"error": "Invalid JWT"}), 200
 
+
+    #return text, filename
+
 @app.route('/api/ingest-pdf-wf', methods=['POST'])
 def ingest_pdfs_wf():
     workflow_id = request.form['workflow_id']

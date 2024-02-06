@@ -5,6 +5,9 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 import ray
 import numpy as np
+from sec_api import QueryApi, RenderApi
+import requests
+import PyPDF2
 
 
 API_KEY = os.getenv('OPENAI_API_KEY')
@@ -174,6 +177,34 @@ def reset_chat_db(chat_id):
         cursor.close()
         return 'Could not delete'
     
+    
+def reset_uploaded_docs(chat_id):
+    conn, cursor = get_db_connection()
+
+    delete_chunks_query = """
+    DELETE chunks
+    FROM chunks
+    INNER JOIN documents ON chunks.document_id = documents.id
+    INNER JOIN chats ON documents.chat_id = chats.id
+    INNER JOIN users ON chats.user_id = users.id
+    WHERE chats.id = ? AND users.id = ?;
+    """
+    cursor.execute(delete_chunks_query, (chat_id, USER_ID))
+
+    delete_documents_query = """
+    DELETE documents
+    FROM documents
+    INNER JOIN chats ON documents.chat_id = chats.id
+    INNER JOIN users ON chats.user_id = users.id
+    WHERE chats.id = ? AND users.id = ?;
+    """
+    cursor.execute(delete_documents_query, (chat_id, USER_ID))
+
+    conn.commit()
+
+    conn.close()
+    cursor.close()
+
 
 def find_most_recent_chat_from_db():
     conn, cursor = get_db_connection()
@@ -428,3 +459,111 @@ def add_model_key_to_db(model_key, chat_id, user_email):
     cursor.execute(update_query, (model_key, chat_id, USER_ID))
 
     conn.commit()
+
+#For edgar
+queryApi = QueryApi(api_key=sec_api_key)
+
+def check_valid_api(ticker):
+    print("IN CHECK_VALID_API: ", ticker)
+    year = 2023
+
+    ticker_query = 'ticker:({})'.format(ticker)
+    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
+
+    query = {
+        "query": { "query_string": {
+            "query": query_string,
+            "time_zone": "America/New_York"
+        } },
+        "from": "0",
+        "size": "200",
+        "sort": [{ "filedAt": { "order": "desc" } }]
+      }
+
+
+    response = queryApi.get_filings(query)
+
+    filings = response['filings']
+
+    if not filings:
+        return False
+    else:
+        return True
+    
+
+def download_10K_url_ticker(ticker):
+    year = 2023
+
+    ticker_query = 'ticker:({})'.format(ticker)
+    query_string = '{ticker_query} AND filedAt:[{year}-01-01 TO {year}-12-31] AND formType:"10-K" AND NOT formType:"10-K/A" AND NOT formType:NT'.format(ticker_query=ticker_query, year=year)
+
+    query = {
+        "query": { "query_string": {
+            "query": query_string,
+            "time_zone": "America/New_York"
+        } },
+        "from": "0",
+        "size": "200",
+        "sort": [{ "filedAt": { "order": "desc" } }]
+      }
+
+
+    response = queryApi.get_filings(query)
+
+    filings = response['filings']
+
+    if filings:
+       ticker=filings[0]['ticker']
+       url=filings[0]['linkToFilingDetails']
+    else:
+       ticker = None
+       url = None
+
+    return url, ticker
+
+def download_filing_as_pdf(url, ticker):
+    API_ENDPOINT = "https://api.sec-api.io/filing-reader"
+
+    api_url = API_ENDPOINT + "?token=" + sec_api_key + "&url=" + url + "&type=pdf"
+
+    response = requests.get(api_url)
+
+    file_name = f"{ticker}.pdf"
+
+    with open(file_name, 'wb') as f:
+        f.write(response.content)
+
+    return file_name
+
+def get_text_from_single_file(file):
+    reader = PyPDF2.PdfReader(file)
+    text = ""
+
+    for page_num in range(len(reader.pages)):
+
+        text += reader.pages[page_num].extract_text()
+
+    return text
+
+def add_ticker_to_chat_db(chat_id, ticker, isUpdate):
+    conn, cursor = get_db_connection()
+
+    if isUpdate:
+        try: 
+            reset_chat_db(chat_id)
+        except:
+            return "Error"
+    
+    query = """UPDATE chats
+    JOIN users ON chats.user_id = users.id
+    SET chats.ticker = ?
+    WHERE users.id = ? AND chats.id = ?"""
+
+    cursor.execute(query, (ticker, USER_ID, chat_id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return "Success"
