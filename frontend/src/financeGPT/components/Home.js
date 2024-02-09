@@ -29,7 +29,6 @@ function HomeChatbot() {
   };
 
   const createNewChat = async () => {
-    console.log("PIGS", currTask, isPrivate);
     const response = await fetcher("create-new-chat", {
       method: "POST",
       headers: {
