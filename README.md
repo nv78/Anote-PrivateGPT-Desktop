@@ -10,7 +10,8 @@ To Run the code:
 `pip install pyinstaller`
 
 4. Build the backend
-`pyinstaller --onefile app.py`
+
+To include the db: `pyinstaller --onefile app.py --add-data "database.db:."`
 
 Note: might have to do `pyinstaller --onefile app.py --hidden-import flask`
 
