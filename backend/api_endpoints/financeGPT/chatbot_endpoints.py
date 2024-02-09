@@ -8,7 +8,7 @@ import numpy as np
 from sec_api import QueryApi, RenderApi
 import requests
 import PyPDF2
-
+import sys
 
 API_KEY = os.getenv('OPENAI_API_KEY')
 embeddings = OpenAIEmbeddings(openai_api_key= API_KEY)
@@ -16,10 +16,23 @@ sec_api_key = os.getenv('SEC_API_KEY')
 
 USER_ID = 1
 
+import os
+
+#PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+#DATABASE = os.path.join(PROJECT_ROOT, 'backend', 'database', 'database.db')
+
 try:
     import ray._private.memory_monitor
 except ImportError:
     pass  # Handle the case where the import fails
+
+def get_application_path():
+    if getattr(sys, 'frozen', False):
+        # If the application is bundled with PyInstaller
+        return sys._MEIPASS
+    else:
+        # Normal execution
+        return os.path.dirname(os.path.abspath(__file__))
 
 def dict_factory(cursor, row):
     d = {}
@@ -28,7 +41,9 @@ def dict_factory(cursor, row):
     return d
 
 def get_db_connection():
-    db_path = './database/database.db'
+    application_path = get_application_path()
+    #db_path = os.path.join(application_path, 'database', 'database.db')
+    db_path = os.path.join(application_path, 'database.db')
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory
