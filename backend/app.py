@@ -136,7 +136,7 @@ def ingest_pdfs():
         doc_id, doesExist = add_document_to_db(text, filename, chat_id=chat_id)
 
         if not doesExist:
-           chunk_document.remote(text, MAX_CHUNK_SIZE, doc_id)
+           chunk_document(text, MAX_CHUNK_SIZE, doc_id)
 
     
     return jsonify({"error": "Invalid JWT"}), 200
@@ -297,13 +297,13 @@ def process_ticker_info():
         doc_id, doesExist = add_document_to_db(text, filename, chat_id)
 
         if not doesExist:
-            chunk_document.remote(text, MAX_CHUNK_SIZE, doc_id)
+            chunk_document(text, MAX_CHUNK_SIZE, doc_id)
 
-        #if os.path.exists(filename):
-        #    os.remove(filename)
-        #    print(f"File '{filename}' has been deleted.")
-        #else:
-        #    print(f"The file '{filename}' does not exist.")
+        if os.path.exists(filename):
+            os.remove(filename)
+            print(f"File '{filename}' has been deleted.")
+        else:
+            print(f"The file '{filename}' does not exist.")
 
 
     return jsonify({"error": "Invalid JWT"}), 200

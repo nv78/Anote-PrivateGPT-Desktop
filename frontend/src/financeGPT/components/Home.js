@@ -78,6 +78,7 @@ function HomeChatbot() {
           setShowChatbot={setShowChatbot}
           createNewChat={createNewChat}
           handleChatSelect={handleChatSelect}
+          forceUpdate={forceUpdate}
         />
       </div>
       <div className="w-[60%] mx-4">

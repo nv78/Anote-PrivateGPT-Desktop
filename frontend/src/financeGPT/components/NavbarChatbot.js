@@ -415,6 +415,7 @@ function NavbarChatbot(props) {
               createNewChat={props.createNewChat}
               selectedChatId={props.selectedChatId}
               handleChatSelect={props.handleChatSelect}
+              forceUpdate={props.forceUpdate}
             />
           </div>
           <div className="bg-[#2A2C38] rounded-xl py-4">

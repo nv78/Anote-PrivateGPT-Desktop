@@ -88,6 +88,7 @@ const Chatbot = (props) => {
   };
 
   const togglePopup = (index) => {
+    console.log('active message index is', props.activeMessageIndex, "index is", index)
     props.setActiveMessageIndex(props.activeMessageIndex === index ? null : index);
   };
 

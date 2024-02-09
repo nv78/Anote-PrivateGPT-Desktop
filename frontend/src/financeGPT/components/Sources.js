@@ -26,18 +26,16 @@ function Sources(props) {
   }, [props.relevantChunk]);
 
   const extractDocumentInfo = (text) => {
-    const regex =
-      /Document:\s*([\w-]+\.pdf),\s*Page\s*(\d+):\s*([^]*?)(?=Document:|$)/gi;
+    const regex = /Document:\s*([^:]+):\s*([^]*?)(?=Document:|$)/gi;
     let match;
     const results = [];
-
+  
     while ((match = regex.exec(text)) !== null) {
-      const docName = match[1];
-      const pageNumber = match[2];
-      const paragraph = match[3].trim(); // Trim to remove leading/trailing whitespace
-      results.push({ docName, pageNumber, paragraph });
+      const docName = match[1].trim(); // Trim to remove leading/trailing whitespace
+      const paragraph = match[2].trim(); // Trim to remove leading/trailing whitespace
+      results.push({ docName, paragraph });
     }
-
+  
     return results;
   };
 
@@ -70,6 +68,7 @@ function Sources(props) {
           Sources
         </h2>
       </div>
+      {console.log("activemessageindex props", props.activeMessageIndex)}
       {props.activeMessageIndex &&
         sourcesInfo.map((info, index) => (
           <div
@@ -81,7 +80,7 @@ function Sources(props) {
               className="flex items-center p-2 my-1 justify-between hover:bg-[#3A3B41] rounded-xl cursor-pointer"
             >
               <span className="text-white">
-                {info.docName}, page {info.pageNumber}
+                {info.docName}
               </span>
               {expandedIndex === index ? (
                 <FontAwesomeIcon icon={faChevronUp} className="text-white" />

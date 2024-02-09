@@ -43,7 +43,8 @@ def dict_factory(cursor, row):
 def get_db_connection():
     application_path = get_application_path()
     #db_path = os.path.join(application_path, 'database', 'database.db')
-    db_path = os.path.join(application_path, 'database.db')
+    #db_path = os.path.join(application_path, 'database.db')
+    db_path = "./database.db"
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory
@@ -293,7 +294,7 @@ def add_document_to_db(text, document_name, chat_id):
 
     return doc_id, False
 
-@ray.remote
+#@ray.remote
 def chunk_document(text, maxChunkSize, document_id):
     conn, cursor = get_db_connection()
 
