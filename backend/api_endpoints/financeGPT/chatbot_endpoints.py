@@ -42,8 +42,8 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     application_path = get_application_path()
-    #db_path = os.path.join(application_path, 'database.db')
-    db_path = "./database.db"
+    db_path = os.path.join(application_path, 'database.db')
+    #db_path = "./database.db"
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory
@@ -129,11 +129,11 @@ def delete_chat_from_db(chat_id):
     conn, cursor = get_db_connection()
 
     delete_chunks_query = """
-        DELETE FROM chunks
-        WHERE document_id IN (
-            SELECT id FROM documents WHERE chat_id = ?
-        )
-        """
+    DELETE FROM chunks
+    WHERE document_id IN (
+        SELECT id FROM documents WHERE chat_id = ?
+    )
+    """
     cursor.execute(delete_chunks_query, (chat_id,))
 
     delete_documents_query = """
@@ -171,11 +171,12 @@ def reset_chat_db(chat_id):
     conn, cursor = get_db_connection()
 
     delete_messages_query = """
-    DELETE messages
-    FROM messages
-    INNER JOIN chats ON messages.chat_id = chats.id
-    INNER JOIN users ON chats.user_id = users.id
-    WHERE chats.id = ? AND users.id = ?;
+    DELETE FROM messages
+    WHERE chat_id = ? AND EXISTS (
+        SELECT 1 FROM chats
+        WHERE chats.id = messages.chat_id
+        AND chats.user_id = ?
+    );
     """
     cursor.execute(delete_messages_query, (chat_id, USER_ID))
 
@@ -184,12 +185,10 @@ def reset_chat_db(chat_id):
     if cursor.rowcount > 0:
         print(f"Deleted chat with ID {chat_id} for user {USER_ID}.")
         conn.close()
-        cursor.close()
         return 'Successfully deleted'
     else:
         print(f"No chat deleted. Chat ID {chat_id} may not exist or does not belong to user {USER_ID}.")
         conn.close()
-        cursor.close()
         return 'Could not delete'
     
     
@@ -197,28 +196,27 @@ def reset_uploaded_docs(chat_id):
     conn, cursor = get_db_connection()
 
     delete_chunks_query = """
-    DELETE chunks
-    FROM chunks
-    INNER JOIN documents ON chunks.document_id = documents.id
-    INNER JOIN chats ON documents.chat_id = chats.id
-    INNER JOIN users ON chats.user_id = users.id
-    WHERE chats.id = ? AND users.id = ?;
+    DELETE FROM chunks
+    WHERE document_id IN (
+        SELECT id FROM documents
+        WHERE chat_id = ?
+    )
     """
-    cursor.execute(delete_chunks_query, (chat_id, USER_ID))
+    cursor.execute(delete_chunks_query, (chat_id,))
 
     delete_documents_query = """
-    DELETE documents
-    FROM documents
-    INNER JOIN chats ON documents.chat_id = chats.id
-    INNER JOIN users ON chats.user_id = users.id
-    WHERE chats.id = ? AND users.id = ?;
+    DELETE FROM documents
+    WHERE chat_id = ? AND EXISTS (
+        SELECT 1 FROM chats
+        WHERE chats.id = documents.chat_id
+        AND chats.user_id = ?
+    )
     """
     cursor.execute(delete_documents_query, (chat_id, USER_ID))
 
     conn.commit()
 
     conn.close()
-    cursor.close()
 
 
 def find_most_recent_chat_from_db():
@@ -571,11 +569,10 @@ def add_ticker_to_chat_db(chat_id, ticker, isUpdate):
             return "Error"
     
     query = """UPDATE chats
-    JOIN users ON chats.user_id = users.id
-    SET chats.ticker = ?
-    WHERE users.id = ? AND chats.id = ?"""
+               SET ticker = ?
+               WHERE id = ? AND user_id = ?"""
 
-    cursor.execute(query, (ticker, USER_ID, chat_id))
+    cursor.execute(query, (ticker, chat_id, USER_ID))
 
     conn.commit()
 

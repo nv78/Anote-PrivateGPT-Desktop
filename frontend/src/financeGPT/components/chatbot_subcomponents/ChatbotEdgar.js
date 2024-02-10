@@ -13,7 +13,7 @@ import fetcher from "../../../http/RequestConfig";
 
 const ChatbotEdgar = (props) => {
   const [messages, setMessages] = useState([]);
-  const [activeMessageIndex, setActiveMessageIndex] = useState(null);
+  const [isFirstMessageSent, setIsFirstMessageSent] = useState(false);
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -30,6 +30,8 @@ const ChatbotEdgar = (props) => {
 
   //initial state
   useEffect(() => {
+    handleLoadChat();
+    setIsFirstMessageSent(false);
     if (props.ticker) {
       setMessages([
         {
@@ -51,6 +53,7 @@ const ChatbotEdgar = (props) => {
 
   useEffect(() => {
     handleLoadChat();
+    setIsFirstMessageSent(false);
   }, [props.selectedChatId, props.forceUpdate]);
 
   const scrollToBottom = () => {
@@ -84,7 +87,7 @@ const ChatbotEdgar = (props) => {
   };
 
   const togglePopup = (index) => {
-    setActiveMessageIndex(activeMessageIndex === index ? null : index);
+    props.setActiveMessageIndex(props.activeMessageIndex === index ? null : index);
   };
 
   const handleTryMessage = (text, chat_id, isPrivate) => {
@@ -145,9 +148,40 @@ const ChatbotEdgar = (props) => {
 
       handleLoadChat();
       scrollToBottom();
+
+      if (!isFirstMessageSent) {
+        inferChatName(text, answer);
+        setIsFirstMessageSent(true);
+      }
     } catch (e) {
       console.error("Error in fetcher:", e);
     }
+  };
+
+  const inferChatName = async(text, answer) => {
+    const combined_text = text.concat(answer);
+    console.log("infer chat");
+    try {
+      const response = await fetcher("infer-chat-name", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: combined_text,
+          chat_id: props.selectedChatId
+        }),
+      });
+      const response_data = await response.json();
+      console.log("response data 123", response_data.chat_name)
+      props.setCurrChatName(response_data.chat_name);
+
+      props.handleForceUpdate();
+    } catch (error) {
+      console.error("Error loading chat messages:", error);
+    }
+   
   };
 
   const handleLoadChat = async () => {
@@ -193,47 +227,29 @@ const ChatbotEdgar = (props) => {
       }));
 
       setMessages((prevMessages) => [...prevMessages, ...transformedMessages]);
+
+      if (transformedMessages.length > 1) {
+        setIsFirstMessageSent(true);
+      } else {
+        setIsFirstMessageSent(false);
+      }
+
     } catch (error) {
       console.error("Error loading chat messages:", error);
     }
   };
 
-  const handleReset = () => {
-    console.log("ENTERED RESET HANDLER");
-
-    resetServer();
-  };
-
-  const resetServer = () => {
-    axios
-      .post("http://localhost:5000/api/reset-everything")
-      .then((response) => {
-        console.log("EXITED RESET HANDLER");
-        console.log(response.data); // Reset was successful!
-        // Reset the state to its initial values
-        if (props.ticker) {
-          setMessages([
-            {
-              message: `Hello, I am your financial assistant, I can answer questions about the company ${props.ticker}, how can I help you?`,
-              sentTime: "just now",
-              direction: "incoming",
-            },
-          ]);
-        } else {
-          setMessages([
-            {
-              message:
-                "Hello, I am your financial assistant, how can I help you?",
-              sentTime: "just now",
-              direction: "incoming",
-            },
-          ]);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to reset:", error);
-        // Handle error cases here
-      });
+  const resetServer = async () => {
+    const response = await fetcher("reset-chat", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ chat_id: props.selectedChatId, delete_docs: true }),
+    });
+    const response_data = await response;
+    props.handleForceUpdate();
   };
 
   //Edgar specific stuff
@@ -439,13 +455,13 @@ const ChatbotEdgar = (props) => {
       </div>
       {/* Chatbot */}
       {props.showChatbot && (
-        <div className="min-h-[78vh] h-[78vh] mt-2 relative bg-[#2A2C38] p-4 w-full rounded-2xl">
+        <div className="min-h-[90vh] h-[90vh] mt-2 relative bg-[#2A2C38] p-4 w-full rounded-2xl">
           {props.currChatName ? (
             <>
               <div className="flex flex-row justify-between">
                 <FontAwesomeIcon
                   icon={faUndoAlt}
-                  onClick={handleReset}
+                  onClick={resetServer}
                   className="reset-icon"
                 />
                 <div className="text-white font-bold">{props.currChatName}</div>
@@ -458,7 +474,7 @@ const ChatbotEdgar = (props) => {
                 </div>
               </div>
               <hr />
-              <div className="flex flex-col space-y-2 h-[70vh] overflow-y-scroll relative">
+              <div className="flex flex-col mt-4 space-y-2 h-[70vh] overflow-y-scroll relative">
                 {messages.map((msg, index) => (
                   <div
                     key={index}
@@ -491,7 +507,7 @@ const ChatbotEdgar = (props) => {
                         />
                       )}
 
-                      {activeMessageIndex === index && (
+                      {props.activeMessageIndex === index && (
                         <div
                           style={{
                             position: "absolute",
@@ -508,9 +524,10 @@ const ChatbotEdgar = (props) => {
                         >
                           {console.log(
                             "active message index",
-                            activeMessageIndex,
+                            props.activeMessageIndex,
                             index
                           )}
+                          {props.setRelevantChunk(msg.relevant_chunks)}
                           <p>{msg.relevant_chunks}</p>
                         </div>
                       )}
