@@ -42,9 +42,8 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     application_path = get_application_path()
-    #db_path = os.path.join(application_path, 'database', 'database.db')
-    db_path = os.path.join(application_path, 'database.db')
-    #db_path = "./database.db"
+    #db_path = os.path.join(application_path, 'database.db')
+    db_path = "./database.db"
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory
@@ -376,10 +375,11 @@ def get_relevant_chunks(k, question, chat_id):
     embeddingVector = np.array(embeddingVector)
 
     res = knn(embeddingVector, embeddings)
+    num_results = min(k, len(res))
 
     #Get the k most relevant chunks
     source_chunks = []
-    for i in range(k):
+    for i in range(num_results):
         source_id = res[i]['index']
 
         document_id = rows[source_id]['document_id']
@@ -391,17 +391,17 @@ def get_relevant_chunks(k, question, chat_id):
         doc_text = cursor.fetchone()['document_text']
 
         source_chunk = doc_text[rows[source_id]['start_index']:rows[source_id]['end_index']]
-        source_chunks.append((source_chunk, page_number, document_name))
-        #source_chunks.append(source_chunk)
+        source_chunks.append((source_chunk, document_name))
 
     return source_chunks
 
 def add_sources_to_db(message_id, sources):
+    print("i am in sources")
     combined_sources = ""
 
     for source in sources:
-        chunk_text, page_number, document_name = source
-        combined_sources += f"Document: {document_name}, Page {page_number}: {chunk_text}\n\n"
+        chunk_text, document_name = source
+        combined_sources += f"Document: {document_name}: {chunk_text}\n\n"
 
     conn, cursor = get_db_connection()
 

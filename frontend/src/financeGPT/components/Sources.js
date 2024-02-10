@@ -32,6 +32,7 @@ function Sources(props) {
   
     while ((match = regex.exec(text)) !== null) {
       const docName = match[1].trim(); // Trim to remove leading/trailing whitespace
+      console.log("DOC NAME IS", docName)
       const paragraph = match[2].trim(); // Trim to remove leading/trailing whitespace
       results.push({ docName, paragraph });
     }
@@ -68,7 +69,6 @@ function Sources(props) {
           Sources
         </h2>
       </div>
-      {console.log("activemessageindex props", props.activeMessageIndex)}
       {props.activeMessageIndex &&
         sourcesInfo.map((info, index) => (
           <div

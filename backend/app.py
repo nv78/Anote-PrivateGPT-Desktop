@@ -6,6 +6,7 @@ import openai
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 import os
 import csv
+import ollama
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -25,8 +26,6 @@ config = {
   'ORIGINS': [
     'http://localhost:3000',  # React
     'http://dashboard.localhost:3000',  # React
-    'https://anote.ai', # Frontend prod URL,
-    'https://privategpt.anote.ai', # Frontend prod URL,
   ],
 }
 CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
@@ -194,35 +193,24 @@ def process_message_pdf():
 
     #Get most relevant section from the document
     sources = get_relevant_chunks(2, query, chat_id)
+    sources_str = " ".join([", ".join(str(elem) for elem in source) for source in sources])
+    print("sources_str", sources_str)
 
     if (model_type == 0):
-        if model_key:
-           model_use = model_key
-        else:
-           model_use = "gpt-4"
+        #if model_key:
+        #   model_use = model_key
+        #else:
+        #   model_use = "gpt-4"
 
-        print("using OpenAI and model is", model_use)
-        client = openai.OpenAI()
-        try:
-            completion = client.chat.completions.create(
-                model=model_use,
-                messages=[
-                    {"role": "user",
-                     "content": f"You are a factual chatbot that answers questions about 10-K documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources[0]}{sources[1]} And this is the question:{query}."}
-                ]
-            )
-            print("using fine tuned model")
-            answer = str(completion.choices[0].message.content)
-        except openai.NotFoundError:
-            print(f"The model `{model_use}` does not exist. Falling back to 'gpt-4'.")
-            completion = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "user",
-                     "content": f"First, tell the user that their given model key does not exist, and that you have resorted to using GPT-4 before answering their question, then add a line break and answer their question. You are a factual chatbot that answers questions about 10-K documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources[0]}{sources[1]} And this is the question:{query}."}
-                ]
-            )
-            answer = str(completion.choices[0].message.content)
+        print("using LLama2")
+        response = ollama.chat(model='llama2', messages=[
+            {
+              'role': 'user',
+              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+              
+            },
+        ])
+        answer = response['message']['content']
     else:
         print("using Claude")
 
@@ -248,7 +236,7 @@ def process_message_pdf():
     try:
         add_sources_to_db(message_id, sources)
     except:
-        print("no sources")
+        print("error adding sources to db or no sources")
 
     return jsonify(answer=answer)
 
