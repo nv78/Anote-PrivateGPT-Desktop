@@ -107,6 +107,7 @@ def update_chat_name():
 @app.route('/delete-chat', methods=['POST'])
 def delete_chat():
     chat_id = request.json.get('chat_id')
+    print("chat is", chat_id)
 
     return delete_chat_from_db(chat_id)
 
@@ -212,23 +213,16 @@ def process_message_pdf():
         ])
         answer = response['message']['content']
     else:
-        print("using Claude")
+        print("using mistral")
 
-        anthropic = Anthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY")
-        )
-
-        completion = anthropic.completions.create(
-            model="claude-2",
-            max_tokens_to_sample=700,
-            prompt = (
-              f"{HUMAN_PROMPT} "
-              f"You are a factual chatbot that answers questions about 10-K documents. You only answer with answers you find in the text, no outside information. "
-              f"please address the question: {query}. "
-              f"Consider the provided text as evidence: {sources[0]}{sources[1]}. "
-              f"{AI_PROMPT}")
-        )
-        answer = completion.completion
+        response = ollama.chat(model='mistral', messages=[
+            {
+              'role': 'user',
+              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+              
+            },
+        ])
+        answer = response['message']['content']
 
     #This adds bot message
     message_id = add_message_to_db(answer, chat_id, 0)

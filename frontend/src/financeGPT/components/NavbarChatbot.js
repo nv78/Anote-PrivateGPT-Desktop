@@ -422,20 +422,6 @@ function NavbarChatbot(props) {
             <h2 className="text-gray-500 uppercase tracking-wide font-semibold text-xs px-4">
               Settings
             </h2>
-            <div
-              className="px-4 py-2"
-              style={{ display: "flex", flexDirection: "row" }}
-            >
-              {/* <div style={{ marginRight: "10px" }}>Private</div>
-              <Switch
-                onChange={handleSwitchChange}
-                checked={props.isPrivate}
-                onColor="#2596be"
-              /> */}
-              <button className="w-full text-white bg-gradient-to-r from-[#2E5C82] to-[#50B7C3] py-2 rounded cursor-pointer font-bold">
-                Purchase Private Version Now
-              </button>
-            </div>
             <div className="rounded p-3 mx-3">
               {/* <div className="mb-5">
                 <div className="font-semibold">Private</div>
@@ -445,7 +431,7 @@ function NavbarChatbot(props) {
                 </select>
               </div> */}
               <div className="flex items-center justify-between">
-                <div className="font-semibold">Public Model</div>
+                <div className="font-semibold">Private Model</div>
                 <select
                   name="publicOptions"
                   id="publicOptions"
@@ -453,8 +439,8 @@ function NavbarChatbot(props) {
                   onChange={handleSwitchChange}
                   value={props.isPrivate === 0 ? "OpenAI" : "Claude"}
                 >
-                  <option value="OpenAI">OpenAI</option>
-                  <option value="Claude">Claude</option>
+                  <option value="llama2">LLaMA 2</option>
+                  <option value="mistral">Mistral</option>
                 </select>
               </div>
             </div>

@@ -8,3 +8,4 @@ backend/.DS_Store
 .env
 backend/api_endpoints/financeGPT/database.db
 backend/database.db
+backend/database/database.db
