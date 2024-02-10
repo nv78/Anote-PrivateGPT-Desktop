@@ -29,3 +29,8 @@ Note: might have to do `pyinstaller --onefile app.py --hidden-import flask`
 9. Install all dependencies and run electron
 `npm install`
 `npm start`
+
+
+Install private models (should include this under installation instructions under the app later):
+1. Follow installation instructions at https://github.com/ollama/ollama
+2. On your terminal, run `ollama run llama2` (let's make this a shell script that is spawned as a child function?)

@@ -5,3 +5,6 @@ frontend/build
 node_modules
 .DS_Store
 backend/.DS_Store
+.env
+backend/api_endpoints/financeGPT/database.db
+backend/database.db
