@@ -30,7 +30,17 @@ function createWindow() {
 
     // Start the Flask backend
     const backendPath = path.join(__dirname, "backend/dist/app");
+    console.log("backend path is", backendPath)
     flaskProcess = spawn(backendPath);
+
+    flaskProcess.stdout.on('data', (data) => {
+        console.log(`Flask stdout: ${data}`);
+      });
+      
+      flaskProcess.stderr.on('data', (data) => {
+        console.error(`Flask stderr: ${data}`);
+      });
+
 
     flaskProcess.on("error", (err) => {
         console.error("Failed to start Flask process:", err);

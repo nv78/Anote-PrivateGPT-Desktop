@@ -3,7 +3,6 @@ from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 from tika import parser as p
 import openai
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 import os
 import csv
 import ollama
@@ -16,8 +15,7 @@ from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_
                                                         get_text_from_single_file
 
 
-
-load_dotenv()
+#load_dotenv()
 
 app = Flask(__name__)
 
