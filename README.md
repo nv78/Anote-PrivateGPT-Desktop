@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 # Anote-PrivateGPT-Desktop
-=======
 To Run the code:
 1. Open backend folder in terminal
 `cd backend`
@@ -37,4 +35,3 @@ Note: might have to do `pyinstaller --onefile app.py --hidden-import flask`
 Install private models (should include this under installation instructions under the app later):
 1. Follow installation instructions at https://github.com/ollama/ollama
 2. On your terminal, run `ollama run llama2` (let's make this a shell script that is spawned as a child function?)
->>>>>>> c8153177aef46f27e6e61fb50dd6da7e06732879
