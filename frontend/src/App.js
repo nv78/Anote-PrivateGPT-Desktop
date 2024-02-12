@@ -12,7 +12,7 @@ import Installation from "./financeGPT/components/Installation.js"
 function App() {
     return (
         <Router>
-             <Installation />
+            <Installation />
             {/* <HomeChatbot /> */}
         </Router>
     );

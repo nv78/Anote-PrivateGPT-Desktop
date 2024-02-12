@@ -43,8 +43,8 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     application_path = get_application_path()
-    db_path = os.path.join(application_path, 'database.db')
-    #db_path = "./database.db"
+    #db_path = os.path.join(application_path, 'database.db')
+    db_path = "./database.db"
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory

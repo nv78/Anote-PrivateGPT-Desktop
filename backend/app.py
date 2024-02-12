@@ -6,6 +6,7 @@ import openai
 import os
 import csv
 import ollama
+import subprocess
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -33,6 +34,38 @@ def test_flask():
     print("hello world")
     test = "hello world"
     return jsonify(test=test)
+
+#INSTALLATION
+@app.route('/install-llama-and-mistral', methods=['POST'])
+def run_ollama():
+    try:
+        print("test2")
+        # Running the command 'ollama run llama2'
+        result = subprocess.run(['ollama', 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        result = subprocess.run(['ollama', 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # Return the standard output if the command was successful
+        return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        # Return error message if the command failed
+        print(f"Ollama command failed with error: {e.stderr}")
+        print("test1")
+        return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
+    
+""" @app.route('/install-mistral', methods=['POST'])
+def run_mistral():
+    try:
+        print("test2")
+        # Running the command 'ollama run llama2'
+        result = subprocess.run(['ollama', 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Return the standard output if the command was successful
+        return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        # Return error message if the command failed
+        print(f"Ollama command failed with error: {e.stderr}")
+        print("test1")
+        return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500 """
 
 @app.route('/download-chat-history', methods=['POST'])
 def download_chat_history():
