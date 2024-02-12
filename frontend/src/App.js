@@ -6,11 +6,14 @@ import { HashRouter as Router } from "react-router-dom";
 // ReactGA4.initialize("G-PNX85JC0CV");
 
 import HomeChatbot from "./financeGPT/components/Home.js"
+import Installation from "./financeGPT/components/Installation.js"
+
 
 function App() {
     return (
         <Router>
-            <HomeChatbot />
+             <Installation />
+            {/* <HomeChatbot /> */}
         </Router>
     );
 }
