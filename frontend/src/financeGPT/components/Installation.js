@@ -1,9 +1,21 @@
 import React, { Component, useState, useEffect } from "react";
 import "../styles/Chatbot.css";
 import fetcher from "../../http/RequestConfig";
+import { useNavigate } from "react-router-dom";
+
 
 function Installation() {
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const goToHomeChatbot = () => {
+    navigate('/chatbot'); // Use the path you defined in your <Route>
+  };
+
+  /* const continueClick = () => {
+
+  } */
 
   const installDependencies = async () => {
     setIsLoading(true);
@@ -42,9 +54,9 @@ function Installation() {
             <div>Before using PrivateGPT, there are a few installation steps</div>
             <p>Click <a className="underline" target="_blank" rel="noopener noreferrer" href={"https://github.com/ollama/ollama"}>here</a> to download Ollama</p>
             <p>Once downloaded:</p>
-            <div className="hover:bg-gray-500 cursor-pointer bg-gray-700 p-2 rounded-lg mb-5" onClick={installDependencies}>Install llama2 and Mistral</div>
+            <div className="w-52 hover:bg-gray-500 cursor-pointer bg-gray-700 p-2 rounded-lg mb-5" onClick={installDependencies}>Install llama2 and Mistral</div>
           </div>
-          <button className="text-xl bg-gray-800 hover:bg-gray-600 w-auto rounded-xl m-2 px-5 py-3 absolute bottom-10 right-10 mb-4 mr-4">
+          <button onClick={goToHomeChatbot} className="text-xl bg-gray-800 hover:bg-gray-600 w-auto rounded-xl m-2 px-5 py-3 absolute bottom-10 right-10 mb-4 mr-4">
             Continue
           </button>
         </div>
