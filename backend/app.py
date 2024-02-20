@@ -36,14 +36,24 @@ def test_flask():
     return jsonify(test=test)
 
 #INSTALLATION
+@app.route('/check-models', methods=['POST'])
+def check_models():
+    base_path = os.path.expanduser('~/.ollama/models/manifests/registry.ollama.ai/library')
+    llama2_exists = os.path.isdir(os.path.join(base_path, 'llama2'))
+    mistral_exists = os.path.isdir(os.path.join(base_path, 'mistral'))
+    print("llama and mistral", llama2_exists, mistral_exists)
+    return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
+
 @app.route('/install-llama-and-mistral', methods=['POST'])
 def run_ollama():
     try:
         print("test2")
         # Running the command 'ollama run llama2'
-        result = subprocess.run(['ollama', 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        ollama_path = '/usr/local/bin/ollama'
         
-        result = subprocess.run(['ollama', 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         # Return the standard output if the command was successful
         return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
     except subprocess.CalledProcessError as e:
