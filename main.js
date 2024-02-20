@@ -4,6 +4,13 @@ const path = require("path");
 
 const { spawn } = require("child_process");
 
+const log = require('electron-log');
+
+console.log = log.log;
+console.error = log.error;
+
+//console.log(log.transports.file.getFile().path);
+
 let flaskProcess = null;
 
 // Create Express app
@@ -28,18 +35,45 @@ function createWindow() {
         },
     });
 
+    log.info("create window created")
+
     // Start the Flask backend
-    const backendPath = path.join(__dirname, "backend/dist/app");
-    console.log("backend path is", backendPath)
-    flaskProcess = spawn(backendPath);
+    //const backendPath = path.join(__dirname, "backend/dist/app");
+    //console.log("backend path is", backendPath)
+
+    let appDistPath;
+    if (process.env.NODE_ENV === 'production') {
+        appDistPath = path.join(process.resourcesPath, 'appdist');
+        console.log('appDistPath', appDistPath);
+    } else {
+        appDistPath = path.join(__dirname, '..', 'appdist');
+        console.log('appDistPath', appDistPath);
+    }
+
+    const dbPath = path.join(appDistPath, 'database.db');
+
+    let backendPath = executablePath = path.join(appDistPath, 'app');
+    log.info('backendPath', backendPath);
+
+    flaskProcess = spawn(backendPath, [], {
+        env: {
+            ...process.env, // Pass existing environment variables
+            DB_PATH: dbPath // Pass the database path as an environment variable
+        }
+    });
+    
 
     flaskProcess.stdout.on('data', (data) => {
-        console.log(`Flask stdout: ${data}`);
-      });
-      
-      flaskProcess.stderr.on('data', (data) => {
-        console.error(`Flask stderr: ${data}`);
-      });
+        const message = data.toString();
+        console.log(`Flask stdout: ${message}`);
+        log.info(`Flask stdout: ${message}`);
+    });
+    
+    flaskProcess.stderr.on('data', (data) => {
+        const message = data.toString();
+        console.error(`Flask stderr: ${message}`);
+        log.info(`Flask stderr: ${message}`);
+    });
 
 
     flaskProcess.on("error", (err) => {

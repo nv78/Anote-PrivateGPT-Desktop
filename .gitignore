@@ -9,3 +9,5 @@ backend/.DS_Store
 backend/api_endpoints/financeGPT/database.db
 backend/database.db
 backend/database/database.db
+
+out/

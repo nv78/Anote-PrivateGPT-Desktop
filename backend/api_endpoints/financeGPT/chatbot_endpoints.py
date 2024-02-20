@@ -12,8 +12,9 @@ import sys
 
 #Todo: hardcode these when deploying
 API_KEY = os.environ.get('OPENAI_API_KEY')
-embeddings = OpenAIEmbeddings(openai_api_key= API_KEY)
 sec_api_key = os.environ.get('SEC_API_KEY')
+
+embeddings = OpenAIEmbeddings(openai_api_key= API_KEY)
 
 USER_ID = 1
 
@@ -42,9 +43,10 @@ def dict_factory(cursor, row):
     return d
 
 def get_db_connection():
-    application_path = get_application_path()
+    #application_path = get_application_path()
+    #db_path = os.path.join(application_path, 'appdist', 'database.db') #get error unable to open db file
     #db_path = os.path.join(application_path, 'database.db')
-    db_path = "./database.db"
+    db_path = os.environ.get('DB_PATH', './database.db')
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = dict_factory

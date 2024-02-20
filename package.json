@@ -1,18 +1,76 @@
 {
-    "name": "electron_demo",
-    "version": "1.0.0",
-    "description": "",
-    "main": "main.js",
-    "scripts": {
-        "start": "electron .",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "electron": "^28.2.0"
-    },
-    "dependencies": {
-        "express": "^4.18.2"
+  "name": "electron_demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "package_prod": "NODE_ENV=production electron-forge make"
+  },
+  "build": {
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "appdist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "./appdist/",
+        "to": "appdist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "extraResource": [
+          "./appdist"
+        ]
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "your_app_name"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
     }
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.2.0",
+    "@electron-forge/maker-deb": "^7.2.0",
+    "@electron-forge/maker-rpm": "^7.2.0",
+    "@electron-forge/maker-squirrel": "^7.2.0",
+    "@electron-forge/maker-zip": "^7.2.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.2.0",
+    "electron": "^28.2.0"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "express": "^4.18.2"
+  }
 }
