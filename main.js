@@ -45,7 +45,7 @@ function createMainWindow() {
         // Do not call mainWindow.show() here
     });
 
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 }
 
 function createWindow() {
@@ -74,17 +74,17 @@ function createWindow() {
     function pingServer() {
         http.get(`http://localhost:${PORT}`, (res) => {
             if (res.statusCode === 200 && !mainWindow.isVisible()) {
-                console.log("Flask server is ready. Waiting an additional 2 seconds before showing the main window.");
+                console.log("Flask server is ready. Waiting an additional 3 seconds before showing the main window.");
                 // Wait an additional 2 seconds before showing the main window
                 setTimeout(() => {
                     mainWindow.show();
                     console.log("Main window shown.");
-                }, 2000); // Additional 2 seconds delay
+                }, 3000); // Additional 3 seconds delay
             } else {
-                setTimeout(pingServer, 2000);
+                setTimeout(pingServer, 3000);
             }
         }).on('error', () => {
-            setTimeout(pingServer, 2000);
+            setTimeout(pingServer, 3000);
         });
     }
 

@@ -11,8 +11,7 @@ import PyPDF2
 import sys
 
 #Todo: hardcode these when deploying
-#API_KEY = os.environ.get('OPENAI_API_KEY')
-sec_api_key = os.environ.get('SEC_API_KEY')
+sec_api_key=os.environ.get('sec_api_key')
 
 embeddings = OllamaEmbeddings()
 
