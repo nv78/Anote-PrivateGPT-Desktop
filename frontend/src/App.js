@@ -11,8 +11,15 @@ function App() {
   
 
   useEffect(() => {
-    checkModelsExist();
+    // Introduce a delay before calling checkModelsExist
+    const timer = setTimeout(() => {
+      checkModelsExist();
+    }, 10000); // 5000 milliseconds = 5 seconds
+
+    // Cleanup function to clear the timeout if the component unmounts
+    return () => clearTimeout(timer);
   }, []);
+
 
     const checkModelsExist = async () => {
       try {
@@ -30,9 +37,12 @@ function App() {
           }
   
           const response_data = await response.json();
+          console.log("response data from checkmodels is", response_data)
 
           if (response_data.llama2_exists && response_data.mistral_exists) {
             setModelsExist(true);
+          } else {
+            setModelsExist(false);
           }
   
           return response_data; // This contains whether each model exists e.g., { llama2_exists: true, mistral_exists: false }
