@@ -18,7 +18,6 @@ function MainNav(props) {
   let dispatch = useDispatch();
   let navigate = useNavigate();
   let user = useUser();
-  console.log("user", user);
   let numCredits = useNumCredits();
 
   useEffect(() => {

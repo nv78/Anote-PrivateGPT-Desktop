@@ -69,7 +69,6 @@ const Chatbot = (props) => {
       console.log("Error: no chat selected"); //replace this later with a popup
     } else {
       try {
-        console.log("handledownlaod1, ", props.selectedChatId, props.chat_type);
         const response = await fetcher("download-chat-history", {
           method: "POST",
           headers: {
@@ -88,7 +87,6 @@ const Chatbot = (props) => {
   };
 
   const togglePopup = (index) => {
-    console.log('active message index is', props.activeMessageIndex, "index is", index)
     props.setActiveMessageIndex(props.activeMessageIndex === index ? null : index);
   };
 
@@ -107,7 +105,6 @@ const Chatbot = (props) => {
   };
 
   const handleSendMessage = async (text, chat_id) => {
-    console.log("props confirmed model key", props.confirmedModelKey);
     inputRef.current.value = "";
 
     const tempMessageId = Date.now();
@@ -193,8 +190,6 @@ const Chatbot = (props) => {
   };
 
   const handleReset = () => {
-    console.log("ENTERED RESET HANDLER");
-
     resetServer();
   };
 
@@ -202,8 +197,6 @@ const Chatbot = (props) => {
     axios
       .post("http://localhost:5000/api/reset-everything")
       .then((response) => {
-        console.log("EXITED RESET HANDLER");
-        console.log(response.data); // Reset was successful!
         // Reset the state to its initial values
         setMessages([
           {
@@ -294,7 +287,6 @@ const Chatbot = (props) => {
                           props.activeMessageIndex,
                           index
                         )}
-                        {console.log("xyz is", msg.relevant_chunks)}
                         {props.setRelevantChunk(msg.relevant_chunks)}
                         <p>{msg.relevant_chunks}</p>
                       </div>

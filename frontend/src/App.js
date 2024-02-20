@@ -23,7 +23,6 @@ function App() {
 
     const checkModelsExist = async () => {
       try {
-        console.log('inside check models exist')
           const response = await fetcher("/check-models", {
               method: "POST",
               headers: {
@@ -37,7 +36,6 @@ function App() {
           }
   
           const response_data = await response.json();
-          console.log("response data from checkmodels is", response_data)
 
           if (response_data.llama2_exists && response_data.mistral_exists) {
             setModelsExist(true);

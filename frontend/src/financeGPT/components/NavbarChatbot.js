@@ -44,17 +44,6 @@ function NavbarChatbot(props) {
     setShowConfirmPopup(false);
   };
 
-  const handleModelKey = async () => {
-    console.log("is private", props.isPrivate);
-    //setChatIdToRename(chat_id);
-    if (props.isPrivate === 1) {
-      console.log("cow");
-      setShowErrorKeyMesage(true);
-    } else {
-      setShowConfirmModelKey(true);
-    }
-  };
-
   const confirmModelKey = () => {
     resetChat();
     props.setConfirmedModelKey(modelKey);
@@ -70,12 +59,8 @@ function NavbarChatbot(props) {
     setShowErrorKeyMesage(false);
   };
 
-  const handleResetModel = () => {
-    setShowConfirmResetKey(true);
-  };
 
   const confirmResetModel = () => {
-    console.log("i am here");
     resetChat();
     addModelKeyToDb(null);
     props.setConfirmedModelKey("");
@@ -123,18 +108,14 @@ function NavbarChatbot(props) {
       body: JSON.stringify({
         chat_id: props.selectedChatId,
         model_type: isPrivate,
-      }), //model_type=1 when private, model_type=0 when public
+      }), //model_type=1 when mistral, model_type=0 when llama
     })
       .then((response) => {
-        console.log("Chat mode changed successfully");
-
-        //props.handleForceUpdate();
       })
       .catch((e) => {
         console.error(e.error);
       });
 
-    //props.handleForceUpdate();
   };
 
   const confirmPopup = showConfirmPopup ? (
@@ -171,55 +152,6 @@ function NavbarChatbot(props) {
         </button>
       </div>
     </div>
-  ) : null;
-
-  const confirmModelPopup = showConfirmModelKey ? (
-    <>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent black
-          zIndex: 999, // Ensure it's below the modal but above everything else
-        }}
-      ></div>
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 1000,
-          color: "black",
-          backgroundColor: "white",
-          padding: 20,
-          borderRadius: 5,
-          boxShadow: "0px 0px 15px rgba(0,0,0,0.5)",
-          textAlign: "center",
-        }}
-      >
-        <p>
-          Warning: You are changing the OpenAI fine tuning model. This will
-          reset your current chat and delete its history. Are you sure you want
-          to proceed?
-        </p>
-        <button
-          onClick={confirmModelKey}
-          className="p-2 my-1 bg-gray-600 rounded-lg hover:bg-gray-400 mr-5"
-        >
-          Yes
-        </button>
-        <button
-          onClick={cancelModelKey}
-          className="p-2 my-1 bg-gray-600 rounded-lg hover:bg-gray-400"
-        >
-          No
-        </button>
-      </div>
-    </>
   ) : null;
 
   const confirmResetModelPopup = showConfirmResetKey ? (
@@ -331,7 +263,6 @@ function NavbarChatbot(props) {
       <nav className="flex flex-col h-screen text-white">
         {confirmPopup}
         {errorKeyPopup}
-        {confirmModelPopup}
         {confirmResetModelPopup}
         <div className="flex-1 overflow-y-auto">
           {/* <div className="p-5 w-full flex justify-center">
@@ -437,49 +368,12 @@ function NavbarChatbot(props) {
                   id="publicOptions"
                   className="bg-[#3A3B41] rounded-lg focus:ring-0 hover:ring-0 hover:border-white border-none text-white cursor-pointer"
                   onChange={handleSwitchChange}
-                  value={props.isPrivate === 0 ? "OpenAI" : "Claude"}
+                  value={props.isPrivate === 0 ? "llama2" : "mistral"}
                 >
                   <option value="llama2">LLaMA 2</option>
                   <option value="mistral">Mistral</option>
                 </select>
               </div>
-            </div>
-            <div className="">
-              <div className="px-4">Your own fine-tuned model key:</div>
-              <div className="flex items-center mx-5">
-                <input
-                  type="text"
-                  className="rounded-xl bg-[#3A3B41] border-none focus:ring-0 focus:border-white text-white placeholder:text-gray-300"
-                  placeholder="Model key"
-                  onChange={(e) => setModelKey(e.target.value)}
-                  value={modelKey}
-                />
-                {modelKey && (
-                  <button
-                    onClick={handleModelKey}
-                    disabled={!modelKey}
-                    style={{
-                      padding: "1px",
-                      paddingRight: "3px",
-                      paddingLeft: "3px",
-                      backgroundColor: "green",
-                      color: "white",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    &#10003; {/* Check Mark */}
-                  </button>
-                )}
-              </div>
-              {props.confirmedModelKey && (
-                <button
-                  class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-2 rounded ml-4 mt-3 text-sm"
-                  onClick={handleResetModel}
-                >
-                  Reset model key
-                </button>
-              )}
             </div>
           </div>
         </div>

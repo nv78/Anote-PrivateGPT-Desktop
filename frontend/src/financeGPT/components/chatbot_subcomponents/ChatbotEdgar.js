@@ -68,7 +68,6 @@ const ChatbotEdgar = (props) => {
       console.log("Error: no chat selected"); //replace this later with a popup
     } else {
       try {
-        console.log("handledownlaod1, ", props.selectedChatId, props.chat_type);
         const response = await fetcher("download-chat-history", {
           method: "POST",
           headers: {
@@ -160,7 +159,6 @@ const ChatbotEdgar = (props) => {
 
   const inferChatName = async(text, answer) => {
     const combined_text = text.concat(answer);
-    console.log("infer chat");
     try {
       const response = await fetcher("infer-chat-name", {
         method: "POST",
@@ -174,7 +172,6 @@ const ChatbotEdgar = (props) => {
         }),
       });
       const response_data = await response.json();
-      console.log("response data 123", response_data.chat_name)
       props.setCurrChatName(response_data.chat_name);
 
       props.handleForceUpdate();
@@ -186,7 +183,6 @@ const ChatbotEdgar = (props) => {
 
   const handleLoadChat = async () => {
     try {
-      console.log("chat type is", props.chat_type);
       const response = await fetcher("retrieve-messages-from-chat", {
         method: "POST",
         headers: {
@@ -264,8 +260,6 @@ const ChatbotEdgar = (props) => {
     });
 
     const data = await response.json();
-    console.log("tiker abc", inputTicker);
-    console.log("data is", data.isValid);
     setIsValidTicker(data.isValid);
   };
 

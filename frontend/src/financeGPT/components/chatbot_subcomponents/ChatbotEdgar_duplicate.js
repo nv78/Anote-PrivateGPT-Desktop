@@ -140,8 +140,6 @@ class ChatbotEdgar extends Component {
 
 
   handleReset = () => {
-    console.log("ENTERED RESET HANDLER");
-
     this.resetServer();
 
     this.resetMessages();
@@ -152,8 +150,6 @@ class ChatbotEdgar extends Component {
     axios
       .post("http://localhost:5000/api/reset-everything")
       .then((response) => {
-        console.log("EXITED RESET HANDLER");
-        console.log(response.data); // Reset was successful!
         // Reset the state to its initial values
         this.setState({
           messages: [

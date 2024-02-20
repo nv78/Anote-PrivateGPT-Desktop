@@ -1,7 +1,7 @@
 import sqlite3
 import os
 import openai
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings
 import os
 #import ray
 import numpy as np
@@ -11,10 +11,10 @@ import PyPDF2
 import sys
 
 #Todo: hardcode these when deploying
-API_KEY = os.environ.get('OPENAI_API_KEY')
+#API_KEY = os.environ.get('OPENAI_API_KEY')
 sec_api_key = os.environ.get('SEC_API_KEY')
 
-embeddings = OpenAIEmbeddings(openai_api_key= API_KEY)
+embeddings = OllamaEmbeddings()
 
 USER_ID = 1
 

@@ -41,7 +41,6 @@ function ChatHistory(props) {
   };
 
   const confirmRenameChat = () => {
-    console.log("new chat name", newChatName);
     renameChat(chatIdToRename, newChatName);
     setShowRenameModal(false);
   };
@@ -51,7 +50,6 @@ function ChatHistory(props) {
   };
 
   const retrieveAllChats = async () => {
-    console.log("i am in retrieve chats")
     try {
       const response = await fetcher("retrieve-all-chats", {
         method: "POST",
@@ -63,7 +61,6 @@ function ChatHistory(props) {
       });
 
       const response_data = await response.json();
-      console.log("Response:", response_data.chat_info);
 
       setChats(response_data.chat_info);
     } catch (error) {
@@ -228,7 +225,6 @@ function ChatHistory(props) {
             props
               .createNewChat()
               .then((newChatId) => {
-                console.log("new chat id", newChatId);
                 const chat_name = "Chat " + newChatId.toString();
                 props.setIsPrivate(0);
                 props.setCurrChatName(chat_name);
@@ -253,20 +249,15 @@ function ChatHistory(props) {
         <div
           key={chat[0]}
           onClick={() => {
-            console.log("NAME OF CHAT IS", chat[2])
             props.onChatSelect(chat.id);
             props.setIsPrivate(chat.model_type);
             props.setTicker(chat.ticker);
-            const custom_model_key = chat.custom_model_key || "";
-            console.log("custom model key", custom_model_key);
-            props.setConfirmedModelKey(custom_model_key);
             if (chat.ticker) {
               props.setIsEdit(0);
               props.setShowChatbot(true);
             }
             props.setcurrTask(chat.associated_task);
             props.setCurrChatName(chat.chat_name);
-            console.log("props selected chat id", props.selectedChatId, "and", chat.id)
           }}
           className={`flex items-center justify-between hover:bg-[#3A3B41] px-6 rounded cursor-pointer ${
             props.selectedChatId === chat.id ? "bg-gray-700" : ""
