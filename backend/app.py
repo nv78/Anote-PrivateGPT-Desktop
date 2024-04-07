@@ -31,7 +31,9 @@ config = {
 }
 CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
 
-process_status = {"running": False, "output": "", "error": ""}
+process_status_llama = {"running": False, "output": "", "error": ""}
+process_status_mistral = {"running": False, "output": "", "error": ""}
+
 
 @app.route('/test-flask', methods=['POST'])
 def test_flask():
@@ -48,7 +50,7 @@ def check_models():
     print("llama and mistral", llama2_exists, mistral_exists)
     return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
 
-def run_ollama_async():
+def run_llama_async():
     ollama_path = '/usr/local/bin/ollama'
     command = [ollama_path, 'run', 'llama2']
     
@@ -64,32 +66,74 @@ def run_ollama_async():
             print(line, end='')  # Debug: print each line to server log
             match = time_left_regex.search(line)
             if match:
-                process_status["time_left"] = match.group()
+                process_status_llama["time_left"] = match.group()
                 
             match_progress = progress_regex.search(line)
             if match_progress:
-                process_status["progress"] = int(match_progress.group(1))
+                process_status_llama["progress"] = int(match_progress.group(1))
         
         process.wait()  # Wait for the process to complete
-        process_status["running"] = False
-        process_status["completed"] = True
-        process_status["progress"] = 100
+        process_status_llama["running"] = False
+        process_status_llama["completed"] = True
+        process_status_llama["progress"] = 100
+        print("proccess complete")
     except Exception as e:
-        process_status["running"] = False
-        process_status["completed"] = True
-        process_status["error"] = str(e)
+        process_status_llama["running"] = False
+        process_status_llama["completed"] = True
+        process_status_llama["error"] = str(e)
+        
+def run_mistral_async():
+    ollama_path = '/usr/local/bin/ollama'
+    command = [ollama_path, 'run', 'mistral']
+    
+    # Regular expression to match the time left message format
+    time_left_regex = re.compile(r'\b\d+m\d+s\b')
+    progress_regex = re.compile(r'(\d+)%')
+
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Monitor the process output in real-time
+        for line in iter(process.stderr.readline, ''):
+            print(line, end='')  # Debug: print each line to server log
+            match = time_left_regex.search(line)
+            if match:
+                process_status_mistral["time_left"] = match.group()
+                
+            match_progress = progress_regex.search(line)
+            if match_progress:
+                process_status_mistral["progress"] = int(match_progress.group(1))
+        
+        process.wait()  # Wait for the process to complete
+        print("proccess complete")
+        process_status_mistral["running"] = False
+        process_status_mistral["completed"] = True
+        process_status_mistral["progress"] = 100
+    except Exception as e:
+        process_status_mistral["running"] = False
+        process_status_mistral["completed"] = True
+        process_status_mistral["error"] = str(e)
         
 
-@app.route('/install-llama-and-mistral', methods=['POST'])
-def run_ollama():
-    if not process_status["running"]:
-        process_status["running"] = True
-        process_status["completed"] = False
-        threading.Thread(target=run_ollama_async).start()
+@app.route('/install-llama', methods=['POST'])
+def run_llama():
+    if not process_status_llama["running"]:
+        process_status_llama["running"] = True
+        process_status_llama["completed"] = False
+        threading.Thread(target=run_llama_async()).start()
         return jsonify({"success": True, "message": "Ollama run initiated."})
     else:
         return jsonify({"success": False, "message": "Ollama run is already in progress."})
         
+@app.route('/install-mistral', methods=['POST'])
+def run_mistral():
+    if not process_status_mistral["running"]:
+        process_status_mistral["running"] = True
+        process_status_mistral["completed"] = False
+        threading.Thread(target=run_mistral_async).start()
+        return jsonify({"success": True, "message": "Mistral run initiated."})
+    else:
+        return jsonify({"success": False, "message": "Ollama run is already in progress."})
 # @app.route('/install-llama-and-mistral', methods=['POST'])
 # def run_ollama():
 #     try:
@@ -108,9 +152,13 @@ def run_ollama():
 #         print("test1")
 #         return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
     
-@app.route('/ollama-status', methods=['POST'])
-def ollama_status():
-    return jsonify(process_status)
+@app.route('/llama-status', methods=['POST'])
+def llama_status():
+    return jsonify(process_status_llama)
+
+@app.route('/mistral-status', methods=['POST'])
+def mistral_status():
+    return jsonify(process_status_mistral)
     
 """ @app.route('/install-mistral', methods=['POST'])
 def run_mistral():

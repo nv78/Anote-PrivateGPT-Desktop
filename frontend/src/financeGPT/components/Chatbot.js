@@ -168,21 +168,46 @@ const Chatbot = (props) => {
 
   const pollOllamaStatus = async () => {
     try {
-      const response = await fetcher('/ollama-status', { method: 'POST' });
-      const status = await response.json();
+      if (props.isPrivate === 0) {
+        const response = await fetcher('/llama-status', { method: 'POST' });
+        const status = await response.json();
 
-      if (!status.running && status.completed) {
-        // Process has completed, update UI accordingly
-        console.log(status.output || status.error);
-        setIsLoading(false); // Stop the loading indicator
-        setProgress(100);
-        setTimeLeft('');
-        setShowInstallationModal(false);
+        console.log("status llama is", status)
+
+        if (!status.running && status.completed) {
+          // Process has completed, update UI accordingly
+          console.log("progress is", status.progress)
+          console.log(status.output || status.error);
+          setIsLoading(false); // Stop the loading indicator
+          setProgress(100);
+          setTimeLeft('');
+          setShowInstallationModal(false);
+        } else {
+          // Process is still running, update UI with time left
+          console.log("progress is", status.progress)
+          setTimeLeft(status.time_left || 'Calculating time left...');
+          setProgress(status.progress);
+          setTimeout(pollOllamaStatus, 3000); // Continue polling
+        }
       } else {
-        // Process is still running, update UI with time left
-        setTimeLeft(status.time_left || 'Calculating time left...');
-        setProgress(status.progress);
-        setTimeout(pollOllamaStatus, 3000); // Continue polling
+        const response = await fetcher('/mistral-status', { method: 'POST' });
+        const status = await response.json();
+
+        console.log("status mistral is", status)
+  
+        if (!status.running && status.completed) {
+          // Process has completed, update UI accordingly
+          console.log(status.output || status.error);
+          setIsLoading(false); // Stop the loading indicator
+          setProgress(100);
+          setTimeLeft('');
+          setShowInstallationModal(false);
+        } else {
+          // Process is still running, update UI with time left
+          setTimeLeft(status.time_left || 'Calculating time left...');
+          setProgress(status.progress);
+          setTimeout(pollOllamaStatus, 3000); // Continue polling
+        }
       }
     } catch (error) {
       console.error('Failed to fetch status:', error);
@@ -218,20 +243,35 @@ const Chatbot = (props) => {
     pollOllamaStatus();
 
     try {
-      const response = await fetcher("/install-llama-and-mistral", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      const responseData = await response.json();
-      if (!responseData.success) {
-        console.error(responseData.message);
-        setIsLoading(false); // Stop loading only if initiation was not successful
-        // Consider adding logic here to stop polling if necessary
+      if (props.isPrivate === 0) {
+        const response = await fetcher("/install-llama", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        const responseData = await response.json();
+        if (!responseData.success) {
+          console.error(responseData.message);
+          setIsLoading(false); // Stop loading only if initiation was not successful
+          // Consider adding logic here to stop polling if necessary
+        }
+      } else {
+        const response = await fetcher("/install-mistral", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        const responseData = await response.json();
+        if (!responseData.success) {
+          console.error(responseData.message);
+          setIsLoading(false); // Stop loading only if initiation was not successful
+          // Consider adding logic here to stop polling if necessary
+        }
       }
-      // If successful, polling continues as started before
     } catch (error) {
       console.error("Installation initiation failed:", error);
       setIsLoading(false); // Stop loading on initiation failure
@@ -281,7 +321,7 @@ const Chatbot = (props) => {
               disabled={isLoading} // Disable button when loading
               className={`w-1/2 mx-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-900 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              Download models
+              Download {props.isPrivate === 0 ? "LLaMa" : "Mistral"}
             </button>
           </div>
           <p>{timeLeft}</p> {/* Display the time left */}
