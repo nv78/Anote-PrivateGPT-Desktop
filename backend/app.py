@@ -7,6 +7,8 @@ import os
 import csv
 import ollama
 import subprocess
+import threading
+import re
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -29,6 +31,8 @@ config = {
 }
 CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
 
+process_status = {"running": False, "output": "", "error": ""}
+
 @app.route('/test-flask', methods=['POST'])
 def test_flask():
     print("hello world")
@@ -44,23 +48,63 @@ def check_models():
     print("llama and mistral", llama2_exists, mistral_exists)
     return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
 
+def run_ollama_async():
+    ollama_path = '/usr/local/bin/ollama'
+    command = [ollama_path, 'run', 'llama2']
+    
+    # Regular expression to match the time left message format
+    time_left_regex = re.compile(r'\b\d+m\d+s\b')
+
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Monitor the process output in real-time
+        for line in iter(process.stderr.readline, ''):
+            print(line, end='')  # Debug: print each line to server log
+            match = time_left_regex.search(line)
+            if match:
+                process_status["time_left"] = match.group()
+        
+        process.wait()  # Wait for the process to complete
+        process_status["running"] = False
+        process_status["completed"] = True
+    except Exception as e:
+        process_status["running"] = False
+        process_status["completed"] = True
+        process_status["error"] = str(e)
+        
+
 @app.route('/install-llama-and-mistral', methods=['POST'])
 def run_ollama():
-    try:
+    if not process_status["running"]:
+        process_status["running"] = True
+        process_status["completed"] = False
+        threading.Thread(target=run_ollama_async).start()
+        return jsonify({"success": True, "message": "Ollama run initiated."})
+    else:
+        return jsonify({"success": False, "message": "Ollama run is already in progress."})
         
-        # Running the command 'ollama run llama2'
-        ollama_path = '/usr/local/bin/ollama'
-        print("running ollama run llama2")
-        result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print("running ollama run mistral")
-        result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # Return the standard output if the command was successful
-        return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
-    except subprocess.CalledProcessError as e:
-        # Return error message if the command failed
-        print(f"Ollama command failed with error: {e.stderr}")
-        print("test1")
-        return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
+# @app.route('/install-llama-and-mistral', methods=['POST'])
+# def run_ollama():
+#     try:
+        
+#         # Running the command 'ollama run llama2'
+#         ollama_path = '/usr/local/bin/ollama'
+#         print("running ollama run llama2")
+#         result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#         print("running ollama run mistral")
+#         result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#         # Return the standard output if the command was successful
+#         return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
+#     except subprocess.CalledProcessError as e:
+#         # Return error message if the command failed
+#         print(f"Ollama command failed with error: {e.stderr}")
+#         print("test1")
+#         return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
+    
+@app.route('/ollama-status', methods=['POST'])
+def ollama_status():
+    return jsonify(process_status)
     
 """ @app.route('/install-mistral', methods=['POST'])
 def run_mistral():
