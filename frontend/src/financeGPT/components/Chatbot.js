@@ -175,7 +175,6 @@ const Chatbot = (props) => {
         console.log("status llama is", status)
 
         if (status.progress === 100) {
-          console.log("i am here")
           setIsLoading(false);
           setShowInstallationModal(false);
           setProgress(0);
@@ -202,6 +201,13 @@ const Chatbot = (props) => {
         const status = await response.json();
 
         console.log("status mistral is", status)
+
+        if (status.progress === 100) {
+          setIsLoading(false);
+          setShowInstallationModal(false);
+          setProgress(0);
+          setTimeLeft('');
+        }
   
         if (!status.running && status.completed) {
           // Process has completed, update UI accordingly
