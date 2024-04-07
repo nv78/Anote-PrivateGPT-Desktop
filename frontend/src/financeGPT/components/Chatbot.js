@@ -20,6 +20,7 @@ const Chatbot = (props) => {
 
   const [showInstallationModal, setShowInstallationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = React.useState(0);
   const [timeLeft, setTimeLeft] = React.useState('');
 
   //initial state
@@ -174,16 +175,20 @@ const Chatbot = (props) => {
         // Process has completed, update UI accordingly
         console.log(status.output || status.error);
         setIsLoading(false); // Stop the loading indicator
-        setTimeLeft(''); // Clear the time left as the process has completed
+        setProgress(100);
+        setTimeLeft('');
+        setShowInstallationModal(false);
       } else {
         // Process is still running, update UI with time left
         setTimeLeft(status.time_left || 'Calculating time left...');
+        setProgress(status.progress);
         setTimeout(pollOllamaStatus, 3000); // Continue polling
       }
     } catch (error) {
       console.error('Failed to fetch status:', error);
       setIsLoading(false); // Stop the loading indicator on error
       setTimeLeft(''); // Clear the time left due to error
+      setShowInstallationModal(false);
     }
   };
 
@@ -265,7 +270,7 @@ const Chatbot = (props) => {
         <div style={{ position: "relative" }}>
           {isLoading ? (
             <div className="loading-bar my-2" style={{ width: "100%", backgroundColor: "#ddd" }}>
-              <div style={{ height: "4px", width: "50%", backgroundColor: "#4CAF50" }}></div> {/* This div represents the loading progress */}
+              <div style={{ height: '20px', width: `${progress}%`, backgroundColor: '#4CAF50' }}></div> {/* This div represents the loading progress */}
             </div>
           ) : (
             <div className="my-2">You have not installed LLaMa or Mistral. Please install below</div>

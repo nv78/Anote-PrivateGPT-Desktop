@@ -54,6 +54,7 @@ def run_ollama_async():
     
     # Regular expression to match the time left message format
     time_left_regex = re.compile(r'\b\d+m\d+s\b')
+    progress_regex = re.compile(r'(\d+)%')
 
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -64,10 +65,15 @@ def run_ollama_async():
             match = time_left_regex.search(line)
             if match:
                 process_status["time_left"] = match.group()
+                
+            match_progress = progress_regex.search(line)
+            if match_progress:
+                process_status["progress"] = int(match_progress.group(1))
         
         process.wait()  # Wait for the process to complete
         process_status["running"] = False
         process_status["completed"] = True
+        process_status["progress"] = 100
     except Exception as e:
         process_status["running"] = False
         process_status["completed"] = True
