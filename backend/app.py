@@ -47,12 +47,12 @@ def check_models():
 @app.route('/install-llama-and-mistral', methods=['POST'])
 def run_ollama():
     try:
-        print("test2")
+        
         # Running the command 'ollama run llama2'
         ollama_path = '/usr/local/bin/ollama'
-        
+        print("running ollama run llama2")
         result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        
+        print("running ollama run mistral")
         result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         # Return the standard output if the command was successful
         return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
@@ -245,25 +245,30 @@ def process_message_pdf():
         #   model_use = "gpt-4"
 
         print("using LLama2")
-        response = ollama.chat(model='llama2', messages=[
-            {
-              'role': 'user',
-              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
-              
-            },
-        ])
-        answer = response['message']['content']
+        try:
+            response = ollama.chat(model='llama2', messages=[
+                {
+                'role': 'user',
+                'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+                
+                },
+            ])
+            answer = response['message']['content']
+        except Exception as e:
+            return jsonify({"error": "Error with llama2"}), 500
     else:
         print("using mistral")
-
-        response = ollama.chat(model='mistral', messages=[
-            {
-              'role': 'user',
-              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
-              
-            },
-        ])
-        answer = response['message']['content']
+        try:
+            response = ollama.chat(model='mistral', messages=[
+                {
+                'role': 'user',
+                'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+                
+                },
+            ])
+            answer = response['message']['content']
+        except Exception as e:
+            return jsonify({"error": "Error with Mistral"}), 500
 
     #This adds bot message
     message_id = add_message_to_db(answer, chat_id, 0)

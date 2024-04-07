@@ -18,6 +18,9 @@ const Chatbot = (props) => {
   const responseColor = "white";
   const userColor = "black";
 
+  const [showInstallationModal, setShowInstallationModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   //initial state
   useEffect(() => {
     loadLatestChat();
@@ -137,7 +140,10 @@ const Chatbot = (props) => {
         }),
       });
       const response_data = await response.json();
+      console.log("response_data", response_data)
+
       const answer = response_data.answer;
+      
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === tempMessageId
@@ -149,9 +155,79 @@ const Chatbot = (props) => {
       handleLoadChat();
       scrollToBottom();
     } catch (e) {
-      console.error("Error in fetcher:", e);
+      console.log("test1")
+      openInstallationModal();
     }
   };
+
+  const openInstallationModal = () => {
+    setShowInstallationModal(true);
+  };
+
+  const installDependencies = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetcher("install-llama-and-mistral", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const response_data = await response.json();
+      setIsLoading(false); // Stop loading after fetch completes
+      setShowInstallationModal(false);
+    } catch (e) {
+      console.error(e.error);
+      setIsLoading(false); // Stop loading on error
+      setShowInstallationModal(false);
+    }
+  };
+
+  const installationModal = showInstallationModal ? (
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.4)",
+          zIndex: 999,
+        }}
+      />{" "}
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1000,
+          padding: 20,
+          borderRadius: 5,
+          boxShadow: "0px 0px 15px rgba(0,0,0,0.5)",
+          textAlign: "center",
+        }}
+        className="bg-gray-800 text-white "
+      >
+        <div style={{ position: "relative" }}>
+          <div>
+            <div className="my-2">You have not installed LLaMa or Mistral. Please install below</div>
+          </div>
+          <div className="w-full flex justify-center mt-4">
+            <button
+              onClick={installDependencies}
+              className="w-1/2 mx-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-900"
+            >
+              Download models
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  ) : null;
+
 
   const handleLoadChat = async () => {
     try {
@@ -215,6 +291,7 @@ const Chatbot = (props) => {
 
   return (
     <>
+      {showInstallationModal && installationModal}
       <div className="min-h-[90vh] h-[90vh] mt-2 relative bg-[#2A2C38] p-4 w-full rounded-2xl">
         {props.currChatName ? (
           <>
