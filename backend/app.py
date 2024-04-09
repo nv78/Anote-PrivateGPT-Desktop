@@ -7,6 +7,8 @@ import os
 import csv
 import ollama
 import subprocess
+import threading
+import re
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -29,6 +31,10 @@ config = {
 }
 CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
 
+process_status_llama = {"running": False, "output": "", "error": ""}
+process_status_mistral = {"running": False, "output": "", "error": ""}
+
+
 @app.route('/test-flask', methods=['POST'])
 def test_flask():
     print("hello world")
@@ -44,23 +50,115 @@ def check_models():
     print("llama and mistral", llama2_exists, mistral_exists)
     return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
 
-@app.route('/install-llama-and-mistral', methods=['POST'])
-def run_ollama():
+def run_llama_async():
+    ollama_path = '/usr/local/bin/ollama'
+    command = [ollama_path, 'run', 'llama2']
+    
+    # Regular expression to match the time left message format
+    time_left_regex = re.compile(r'\b\d+m\d+s\b')
+    progress_regex = re.compile(r'(\d+)%')
+
     try:
-        print("test2")
-        # Running the command 'ollama run llama2'
-        ollama_path = '/usr/local/bin/ollama'
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         
-        result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # Monitor the process output in real-time
+        for line in iter(process.stderr.readline, ''):
+            print(line, end='')  # Debug: print each line to server log
+            match = time_left_regex.search(line)
+            if match:
+                process_status_llama["time_left"] = match.group()
+                
+            match_progress = progress_regex.search(line)
+            if match_progress:
+                process_status_llama["progress"] = int(match_progress.group(1))
         
-        result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # Return the standard output if the command was successful
-        return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
-    except subprocess.CalledProcessError as e:
-        # Return error message if the command failed
-        print(f"Ollama command failed with error: {e.stderr}")
-        print("test1")
-        return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
+        process.wait()  # Wait for the process to complete
+        process_status_llama["running"] = False
+        process_status_llama["completed"] = True
+        process_status_llama["progress"] = 100
+        print("proccess complete")
+    except Exception as e:
+        process_status_llama["running"] = False
+        process_status_llama["completed"] = True
+        process_status_llama["error"] = str(e)
+        
+def run_mistral_async():
+    ollama_path = '/usr/local/bin/ollama'
+    command = [ollama_path, 'run', 'mistral']
+    
+    # Regular expression to match the time left message format
+    time_left_regex = re.compile(r'\b\d+m\d+s\b')
+    progress_regex = re.compile(r'(\d+)%')
+
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Monitor the process output in real-time
+        for line in iter(process.stderr.readline, ''):
+            print(line, end='')  # Debug: print each line to server log
+            match = time_left_regex.search(line)
+            if match:
+                process_status_mistral["time_left"] = match.group()
+                
+            match_progress = progress_regex.search(line)
+            if match_progress:
+                process_status_mistral["progress"] = int(match_progress.group(1))
+        
+        process.wait()  # Wait for the process to complete
+        print("proccess complete")
+        process_status_mistral["running"] = False
+        process_status_mistral["completed"] = True
+        process_status_mistral["progress"] = 100
+    except Exception as e:
+        process_status_mistral["running"] = False
+        process_status_mistral["completed"] = True
+        process_status_mistral["error"] = str(e)
+        
+
+@app.route('/install-llama', methods=['POST'])
+def run_llama():
+    if not process_status_llama["running"]:
+        process_status_llama["running"] = True
+        process_status_llama["completed"] = False
+        threading.Thread(target=run_llama_async()).start()
+        return jsonify({"success": True, "message": "Ollama run initiated."})
+    else:
+        return jsonify({"success": False, "message": "Ollama run is already in progress."})
+        
+@app.route('/install-mistral', methods=['POST'])
+def run_mistral():
+    if not process_status_mistral["running"]:
+        process_status_mistral["running"] = True
+        process_status_mistral["completed"] = False
+        threading.Thread(target=run_mistral_async).start()
+        return jsonify({"success": True, "message": "Mistral run initiated."})
+    else:
+        return jsonify({"success": False, "message": "Ollama run is already in progress."})
+# @app.route('/install-llama-and-mistral', methods=['POST'])
+# def run_ollama():
+#     try:
+        
+#         # Running the command 'ollama run llama2'
+#         ollama_path = '/usr/local/bin/ollama'
+#         print("running ollama run llama2")
+#         result = subprocess.run([ollama_path, 'run', 'llama2'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#         print("running ollama run mistral")
+#         result = subprocess.run([ollama_path, 'run', 'mistral'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#         # Return the standard output if the command was successful
+#         return jsonify({"success": True, "message": "Ollama run successfully.", "output": result.stdout})
+#     except subprocess.CalledProcessError as e:
+#         # Return error message if the command failed
+#         print(f"Ollama command failed with error: {e.stderr}")
+#         print("test1")
+#         return jsonify({"success": False, "message": "Failed to run Ollama.", "error": e.stderr}), 500
+    
+@app.route('/llama-status', methods=['POST'])
+def llama_status():
+    return jsonify(process_status_llama)
+
+@app.route('/mistral-status', methods=['POST'])
+def mistral_status():
+    return jsonify(process_status_mistral)
     
 """ @app.route('/install-mistral', methods=['POST'])
 def run_mistral():
@@ -245,25 +343,30 @@ def process_message_pdf():
         #   model_use = "gpt-4"
 
         print("using LLama2")
-        response = ollama.chat(model='llama2', messages=[
-            {
-              'role': 'user',
-              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
-              
-            },
-        ])
-        answer = response['message']['content']
+        try:
+            response = ollama.chat(model='llama2', messages=[
+                {
+                'role': 'user',
+                'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+                
+                },
+            ])
+            answer = response['message']['content']
+        except Exception as e:
+            return jsonify({"error": "Error with llama2"}), 500
     else:
         print("using mistral")
-
-        response = ollama.chat(model='mistral', messages=[
-            {
-              'role': 'user',
-              'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
-              
-            },
-        ])
-        answer = response['message']['content']
+        try:
+            response = ollama.chat(model='mistral', messages=[
+                {
+                'role': 'user',
+                'content': f'You are a factual chatbot that answers questions about uploaded documents. You only answer with answers you find in the text, no outside information. These are the sources from the text:{sources_str} And this is the question:{query}.',
+                
+                },
+            ])
+            answer = response['message']['content']
+        except Exception as e:
+            return jsonify({"error": "Error with Mistral"}), 500
 
     #This adds bot message
     message_id = add_message_to_db(answer, chat_id, 0)

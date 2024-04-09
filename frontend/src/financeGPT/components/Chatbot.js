@@ -18,6 +18,11 @@ const Chatbot = (props) => {
   const responseColor = "white";
   const userColor = "black";
 
+  const [showInstallationModal, setShowInstallationModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [timeLeft, setTimeLeft] = React.useState('');
+
   //initial state
   useEffect(() => {
     loadLatestChat();
@@ -45,13 +50,13 @@ const Chatbot = (props) => {
   const loadLatestChat = async () => {
     try {
       const response = await fetcher("find-most-recent-chat", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}), 
-    });
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
 
       const response_data = await response.json();
 
@@ -137,7 +142,10 @@ const Chatbot = (props) => {
         }),
       });
       const response_data = await response.json();
+      console.log("response_data", response_data)
+
       const answer = response_data.answer;
+
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === tempMessageId
@@ -149,9 +157,167 @@ const Chatbot = (props) => {
       handleLoadChat();
       scrollToBottom();
     } catch (e) {
-      console.error("Error in fetcher:", e);
+      console.log("test1")
+      openInstallationModal();
     }
   };
+
+  const openInstallationModal = () => {
+    setShowInstallationModal(true);
+  };
+
+  const pollOllamaStatus = async () => {
+    try {
+      if (props.isPrivate === 0) {
+        const response = await fetcher('/llama-status', { method: 'POST' });
+        const status = await response.json();
+
+        console.log("status llama is", status)
+
+        if (status.progress === 100) {
+          setIsLoading(false);
+          setShowInstallationModal(false);
+          setProgress(0);
+          setTimeLeft('');
+        }
+
+        if (!status.running && status.completed) {
+          setIsLoading(false); // Stop the loading indicator
+          setProgress(100);
+          setTimeLeft('');
+          setShowInstallationModal(false);
+        } else {
+          setTimeLeft(status.time_left || 'Calculating time left...');
+          setProgress(status.progress);
+          setTimeout(pollOllamaStatus, 3000); // Continue polling
+        }
+      } else {
+        const response = await fetcher('/mistral-status', { method: 'POST' });
+        const status = await response.json();
+
+        console.log("status mistral is", status)
+
+        if (status.progress === 100) {
+          setIsLoading(false);
+          setShowInstallationModal(false);
+          setProgress(0);
+          setTimeLeft('');
+        }
+
+        if (!status.running && status.completed) {
+          setIsLoading(false); // Stop the loading indicator
+          setProgress(100);
+          setTimeLeft('');
+          setShowInstallationModal(false);
+        } else {
+          setTimeLeft(status.time_left || 'Calculating time left...');
+          setProgress(status.progress);
+          setTimeout(pollOllamaStatus, 3000); // Continue polling
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch status:', error);
+      setIsLoading(false); // Stop the loading indicator on error
+      setTimeLeft(''); // Clear the time left due to error
+      setShowInstallationModal(false);
+    }
+  };
+
+
+  const installDependencies = async () => {
+    setIsLoading(true);
+    pollOllamaStatus();
+
+    try {
+      if (props.isPrivate === 0) {
+        const response = await fetcher("/install-llama", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        const responseData = await response.json();
+        if (!responseData.success) {
+          console.error(responseData.message);
+          setIsLoading(false);
+        }
+      } else {
+        const response = await fetcher("/install-mistral", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        const responseData = await response.json();
+        if (!responseData.success) {
+          console.error(responseData.message);
+          setIsLoading(false);
+        }
+      }
+    } catch (error) {
+      console.error("Installation initiation failed:", error);
+      setIsLoading(false); // Stop loading on initiation failure
+      // Again, consider stopping the polling here if the request fails
+    }
+  };
+
+
+  const installationModal = showInstallationModal ? (
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.4)",
+          zIndex: 999,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "24%",
+          right: "24%",
+          transform: "translateY(-50%)",
+          zIndex: 1000,
+          padding: 20,
+          borderRadius: 5,
+          boxShadow: "0px 0px 15px rgba(0,0,0,0.5)",
+          textAlign: "center",
+        }}
+        className="bg-gray-800 text-white"
+      >
+        <div style={{ position: "relative" }}>
+          <div className="flex justify-between items-center">
+            {isLoading ? (
+              <div className="loading-bar my-2" style={{ width: "100%", backgroundColor: "#ddd", borderRadius: '10px', overflow: 'hidden', marginRight: '8px' }}>
+                <div style={{ height: '20px', width: `${progress}%`, backgroundColor: '#4CAF50' }}></div> {/* This div represents the loading progress */}
+              </div>
+            ) : (
+              <div className="my-2 w-full text-center">You have not installed {props.isPrivate === 0 ? "LLaMa" : "Mistral"}. Please install below</div>
+            )}
+            <p>{timeLeft}</p> {/* Display the time left */}
+          </div>
+          <div className="w-full flex justify-center mt-4">
+            <button
+              onClick={installDependencies}
+              disabled={isLoading} // Disable button when loading
+              className={`w-1/2 mx-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-900 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              Download {props.isPrivate === 0 ? "LLaMa" : "Mistral"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  ) : null;
+
+
 
   const handleLoadChat = async () => {
     try {
@@ -215,6 +381,7 @@ const Chatbot = (props) => {
 
   return (
     <>
+      {showInstallationModal && installationModal}
       <div className="min-h-[90vh] h-[90vh] mt-2 relative bg-[#2A2C38] p-4 w-full rounded-2xl">
         {props.currChatName ? (
           <>
@@ -238,9 +405,8 @@ const Chatbot = (props) => {
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`message ${
-                    msg.direction === "incoming" ? "incoming" : "outgoing"
-                  }`}
+                  className={`message ${msg.direction === "incoming" ? "incoming" : "outgoing"
+                    }`}
                 >
                   <div className="message-content">
                     <div
