@@ -182,16 +182,11 @@ const Chatbot = (props) => {
         }
 
         if (!status.running && status.completed) {
-          // Process has completed, update UI accordingly
-          console.log("progress is", status.progress)
-          console.log(status.output || status.error);
           setIsLoading(false); // Stop the loading indicator
           setProgress(100);
           setTimeLeft('');
           setShowInstallationModal(false);
         } else {
-          // Process is still running, update UI with time left
-          console.log("progress is", status.progress)
           setTimeLeft(status.time_left || 'Calculating time left...');
           setProgress(status.progress);
           setTimeout(pollOllamaStatus, 3000); // Continue polling
@@ -208,16 +203,13 @@ const Chatbot = (props) => {
           setProgress(0);
           setTimeLeft('');
         }
-  
+
         if (!status.running && status.completed) {
-          // Process has completed, update UI accordingly
-          console.log(status.output || status.error);
           setIsLoading(false); // Stop the loading indicator
           setProgress(100);
           setTimeLeft('');
           setShowInstallationModal(false);
         } else {
-          // Process is still running, update UI with time left
           setTimeLeft(status.time_left || 'Calculating time left...');
           setProgress(status.progress);
           setTimeout(pollOllamaStatus, 3000); // Continue polling
@@ -232,28 +224,8 @@ const Chatbot = (props) => {
   };
 
 
-  // const installDependencies = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await fetcher("install-llama-and-mistral", {
-  //       method: "POST",
-  //       headers: {
-  //         Accept: "application/json",
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     const response_data = await response.json();
-  //     setIsLoading(false); // Stop loading after fetch completes
-  //     setShowInstallationModal(false);
-  //   } catch (e) {
-  //     console.error(e.error);
-  //     setIsLoading(false); // Stop loading on error
-  //     setShowInstallationModal(false);
-  //   }
-  // };
-
   const installDependencies = async () => {
-    setIsLoading(true); // Show loading indicator
+    setIsLoading(true);
     pollOllamaStatus();
 
     try {
@@ -268,8 +240,7 @@ const Chatbot = (props) => {
         const responseData = await response.json();
         if (!responseData.success) {
           console.error(responseData.message);
-          setIsLoading(false); // Stop loading only if initiation was not successful
-          // Consider adding logic here to stop polling if necessary
+          setIsLoading(false);
         }
       } else {
         const response = await fetcher("/install-mistral", {
@@ -282,8 +253,7 @@ const Chatbot = (props) => {
         const responseData = await response.json();
         if (!responseData.success) {
           console.error(responseData.message);
-          setIsLoading(false); // Stop loading only if initiation was not successful
-          // Consider adding logic here to stop polling if necessary
+          setIsLoading(false);
         }
       }
     } catch (error) {
@@ -311,8 +281,9 @@ const Chatbot = (props) => {
         style={{
           position: "fixed",
           top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
+          left: "24%",
+          right: "24%",
+          transform: "translateY(-50%)",
           zIndex: 1000,
           padding: 20,
           borderRadius: 5,
@@ -322,13 +293,16 @@ const Chatbot = (props) => {
         className="bg-gray-800 text-white"
       >
         <div style={{ position: "relative" }}>
-          {isLoading ? (
-            <div className="loading-bar my-2" style={{ width: "100%", backgroundColor: "#ddd" }}>
-              <div style={{ height: '20px', width: `${progress}%`, backgroundColor: '#4CAF50' }}></div> {/* This div represents the loading progress */}
-            </div>
-          ) : (
-            <div className="my-2">You have not installed LLaMa or Mistral. Please install below</div>
-          )}
+          <div className="flex justify-between items-center">
+            {isLoading ? (
+              <div className="loading-bar my-2" style={{ width: "100%", backgroundColor: "#ddd", borderRadius: '10px', overflow: 'hidden', marginRight: '8px' }}>
+                <div style={{ height: '20px', width: `${progress}%`, backgroundColor: '#4CAF50' }}></div> {/* This div represents the loading progress */}
+              </div>
+            ) : (
+              <div className="my-2 w-full text-center">You have not installed {props.isPrivate === 0 ? "LLaMa" : "Mistral"}. Please install below</div>
+            )}
+            <p>{timeLeft}</p> {/* Display the time left */}
+          </div>
           <div className="w-full flex justify-center mt-4">
             <button
               onClick={installDependencies}
@@ -338,7 +312,6 @@ const Chatbot = (props) => {
               Download {props.isPrivate === 0 ? "LLaMa" : "Mistral"}
             </button>
           </div>
-          <p>{timeLeft}</p> {/* Display the time left */}
         </div>
       </div>
     </>
