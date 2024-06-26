@@ -50,8 +50,41 @@ def check_models():
     print("llama and mistral", llama2_exists, mistral_exists)
     return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
 
+# def run_llama_async():
+#     ollama_path = '/usr/local/bin/ollama'
+#     command = [ollama_path, 'run', 'llama2']
+    
+#     # Regular expression to match the time left message format
+#     time_left_regex = re.compile(r'\b\d+m\d+s\b')
+#     progress_regex = re.compile(r'(\d+)%')
+
+#     try:
+#         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+#         # Monitor the process output in real-time
+#         for line in iter(process.stderr.readline, ''):
+#             print(line, end='')  # Debug: print each line to server log
+#             match = time_left_regex.search(line)
+#             if match:
+#                 process_status_llama["time_left"] = match.group()
+                
+#             match_progress = progress_regex.search(line)
+#             if match_progress:
+#                 process_status_llama["progress"] = int(match_progress.group(1))
+        
+#         process.wait()  # Wait for the process to complete
+#         process_status_llama["running"] = False
+#         process_status_llama["completed"] = True
+#         process_status_llama["progress"] = 100
+#         print("proccess complete")
+#     except Exception as e:
+#         process_status_llama["running"] = False
+#         process_status_llama["completed"] = True
+#         process_status_llama["error"] = str(e)
+
+#windwows
 def run_llama_async():
-    ollama_path = '/usr/local/bin/ollama'
+    ollama_path = os.path.join(os.getenv('LOCALAPPDATA'), 'Programs', 'Ollama', 'ollama.exe')
     command = [ollama_path, 'run', 'llama2']
     
     # Regular expression to match the time left message format
@@ -59,7 +92,7 @@ def run_llama_async():
     progress_regex = re.compile(r'(\d+)%')
 
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         
         # Monitor the process output in real-time
         for line in iter(process.stderr.readline, ''):
@@ -76,14 +109,46 @@ def run_llama_async():
         process_status_llama["running"] = False
         process_status_llama["completed"] = True
         process_status_llama["progress"] = 100
-        print("proccess complete")
+        print("process complete")
     except Exception as e:
         process_status_llama["running"] = False
         process_status_llama["completed"] = True
         process_status_llama["error"] = str(e)
         
+# def run_mistral_async():
+#     ollama_path = '/usr/local/bin/ollama'
+#     command = [ollama_path, 'run', 'mistral']
+    
+#     # Regular expression to match the time left message format
+#     time_left_regex = re.compile(r'\b\d+m\d+s\b')
+#     progress_regex = re.compile(r'(\d+)%')
+
+#     try:
+#         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+#         # Monitor the process output in real-time
+#         for line in iter(process.stderr.readline, ''):
+#             print(line, end='')  # Debug: print each line to server log
+#             match = time_left_regex.search(line)
+#             if match:
+#                 process_status_mistral["time_left"] = match.group()
+                
+#             match_progress = progress_regex.search(line)
+#             if match_progress:
+#                 process_status_mistral["progress"] = int(match_progress.group(1))
+        
+#         process.wait()  # Wait for the process to complete
+#         print("proccess complete")
+#         process_status_mistral["running"] = False
+#         process_status_mistral["completed"] = True
+#         process_status_mistral["progress"] = 100
+#     except Exception as e:
+#         process_status_mistral["running"] = False
+#         process_status_mistral["completed"] = True
+#         process_status_mistral["error"] = str(e)
+
 def run_mistral_async():
-    ollama_path = '/usr/local/bin/ollama'
+    ollama_path = os.path.join(os.getenv('LOCALAPPDATA'), 'Programs', 'Ollama', 'ollama.exe')
     command = [ollama_path, 'run', 'mistral']
     
     # Regular expression to match the time left message format
@@ -91,7 +156,7 @@ def run_mistral_async():
     progress_regex = re.compile(r'(\d+)%')
 
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         
         # Monitor the process output in real-time
         for line in iter(process.stderr.readline, ''):
@@ -105,7 +170,7 @@ def run_mistral_async():
                 process_status_mistral["progress"] = int(match_progress.group(1))
         
         process.wait()  # Wait for the process to complete
-        print("proccess complete")
+        print("process complete")
         process_status_mistral["running"] = False
         process_status_mistral["completed"] = True
         process_status_mistral["progress"] = 100
