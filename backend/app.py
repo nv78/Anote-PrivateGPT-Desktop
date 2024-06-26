@@ -21,7 +21,6 @@ from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_
 #load_dotenv()
 
 app = Flask(__name__)
-
 # TODO: Replace with your URLs.
 config = {
   'ORIGINS': [
@@ -33,7 +32,6 @@ CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentia
 
 process_status_llama = {"running": False, "output": "", "error": ""}
 process_status_mistral = {"running": False, "output": "", "error": ""}
-
 
 @app.route('/test-flask', methods=['POST'])
 def test_flask():
