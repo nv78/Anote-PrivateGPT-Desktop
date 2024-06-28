@@ -9,6 +9,7 @@ import ollama
 import subprocess
 import threading
 import re
+import uuid
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -46,7 +47,7 @@ def before_request():
         h = response.headers
         h['Access-Control-Allow-Origin'] = request.headers['Origin']
         h['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS, DELETE'
-        h['Access-Control-Allow-Headers'] = headers or 'Authorization'
+        h['Access-Control-Allow-Headers'] = headers or 'Authorization, Content-Type' #'Authorization'
         h['Access-Control-Allow-Credentials'] = 'true'
         return response
 
@@ -289,16 +290,24 @@ def find_most_recent_chat():
 
     return jsonify(chat_info=chat_info)
 
-
-@app.route('/ingest-pdf', methods=['POST'])
+@app.route('/ingest-metadata', methods=['POST'])
 @cross_origin(origins='*', supports_credentials=True)
-def ingest_pdfs():
-    chat_id = request.form.getlist('chat_id')[0]
+def ingest_metadata():
+    data = request.json
+    chat_id = data.get('chat_id')
+    print("Received chat_id:", chat_id)
+    
+    upload_token = str(uuid.uuid4())  # Generate a unique token for the upload URL
+    upload_url = f"ingest-files/{chat_id}/{upload_token}"
+        
+    return jsonify({"uploadUrl": upload_url})
 
+# @app.route('/ingest-files', methods=['POST'])
+@app.route('/ingest-files/<chat_id>/<upload_token>', methods=['POST'])
+@cross_origin(origins='*', supports_credentials=True)
+def ingest_files(chat_id, upload_token):
     files = request.files.getlist('files[]')
-
     MAX_CHUNK_SIZE = 1000
-
 
     for file in files:
         result = p.from_buffer(file)
@@ -309,10 +318,37 @@ def ingest_pdfs():
         doc_id, doesExist = add_document_to_db(text, filename, chat_id=chat_id)
 
         if not doesExist:
-           chunk_document(text, MAX_CHUNK_SIZE, doc_id)
+            chunk_document(text, MAX_CHUNK_SIZE, doc_id)
+
+    return jsonify({"status": "success"})
+
+# @app.route('/ingest-pdf', methods=['POST'])
+# @cross_origin(origins='*', supports_credentials=True)
+# def ingest_pdfs():
+#     chat_id = request.form.get('chat_id')
+#     chat_type = request.form.get('chat_type')
 
     
-    return jsonify({"error": "Invalid JWT"}), 200
+#     chat_id = request.form.getlist('chat_id')[0]
+
+#     files = request.files.getlist('files[]')
+
+#     MAX_CHUNK_SIZE = 1000
+
+
+#     for file in files:
+#         result = p.from_buffer(file)
+#         text = result["content"].strip()
+
+#         filename = file.filename
+
+#         doc_id, doesExist = add_document_to_db(text, filename, chat_id=chat_id)
+
+#         if not doesExist:
+#            chunk_document(text, MAX_CHUNK_SIZE, doc_id)
+
+    
+#     return jsonify({"error": "Invalid JWT"}), 200
 
 @app.route('/retrieve-current-docs', methods=['POST'])
 @cross_origin(origins='*', supports_credentials=True)
