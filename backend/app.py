@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, abort, redirect, send_file
 from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
-from tika import parser as p
+#from tika import parser as p
 import openai
 import os
 import csv
@@ -9,6 +9,7 @@ import ollama
 import subprocess
 import threading
 import re
+import PyPDF2
 
 
 from api_endpoints.financeGPT.chatbot_endpoints import add_chat_to_db, retrieve_chats_from_db, retrieve_message_from_db, retrieve_docs_from_db, delete_doc_from_db, \
@@ -257,25 +258,36 @@ def find_most_recent_chat():
     return jsonify(chat_info=chat_info)
 
 
+def get_text_from_single_file(file):
+    reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page_num in range(len(reader.pages)):
+        text += reader.pages[page_num].extract_text()
+
+
+    return text
+
+
 @app.route('/ingest-pdf', methods=['POST'])
 def ingest_pdfs():
+
     chat_id = request.form.getlist('chat_id')[0]
 
     files = request.files.getlist('files[]')
 
     MAX_CHUNK_SIZE = 1000
 
-
     for file in files:
-        result = p.from_buffer(file)
-        text = result["content"].strip()
+        print("test")
+        text = get_text_from_single_file(file)
+        print('text is', text)
 
         filename = file.filename
 
         doc_id, doesExist = add_document_to_db(text, filename, chat_id=chat_id)
 
         if not doesExist:
-           chunk_document(text, MAX_CHUNK_SIZE, doc_id)
+            chunk_document(text, MAX_CHUNK_SIZE, doc_id)
 
     
     return jsonify({"error": "Invalid JWT"}), 200

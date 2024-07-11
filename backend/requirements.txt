@@ -7,6 +7,6 @@ openai==1.6.1
 langchain
 sec_api
 ollama
-tika
+#tika
 Werkzeug==2.2.2
 PyPDF2
