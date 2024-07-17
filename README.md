@@ -41,7 +41,7 @@ To Run the code:
 `cd backend`
 
 2. Create a virtual env in 
-`python3 -m venv venv`
+`python -m venv venv`
 `source venv/bin/activate`
 
 3. Install pyinstaller
