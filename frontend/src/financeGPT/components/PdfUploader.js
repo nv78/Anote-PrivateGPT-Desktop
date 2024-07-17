@@ -127,32 +127,94 @@ function PDFUploader({ chat_id, handleForceUpdate }) {
     zIndex: 1000,
   };
 
-  const uploadFile = async (e) => {
-    const files = e.target.files;
+  // const uploadFile = async (e) => {
+  //   const files = e.target.files;
 
+  //   const formData = new FormData();
+  //   for (let i = 0; i < files.length; i++) {
+  //     formData.append("files[]", files[i]);
+  //   }
+
+  //   console.log("chat_id", chat_id);
+  //   formData.append("chat_id", chat_id);
+
+  //   setIsUploading(true);
+
+  //   console.log("form data", formData)
+
+  //   try {
+  //     const response = await fetcher("ingest-pdf", {
+  //       method: "POST",
+  //       body: formData,
+  //     })
+  //       const response_str = await response.json();
+  //       setIsUploading(false);
+  //       handleForceUpdate();
+  //   } catch (error) {
+  //     console.error("Error during file upload")
+  //   }
+
+  // };
+
+  const uploadMetadata = async (chatId) => {
+    try {
+      const response = await fetcher("ingest-metadata", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+        })
+      });
+  
+      const result = await response.json();
+      return result.uploadUrl;
+    } catch (error) {
+      console.error("Error uploading metadata", error);
+    }
+  };
+  
+  const uploadFiles = async (files, uploadUrl) => {
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
       formData.append("files[]", files[i]);
     }
 
-    //console.log("chat_id", chat_id);
-    formData.append("chat_id", chat_id);
-
-    setIsUploading(true);
-
+    console.log("form data", formData)
+    console.log("form data entries:", Array.from(formData.entries()));
+  
     try {
-      const response = await fetcher("ingest-pdf", {
+      //const response = await fetcher(uploadUrl, {
+      const response = await fetch(`http://127.0.0.1:5000/${uploadUrl}`, {
         method: "POST",
-        body: formData,
-      })
-        const response_str = await response.json();
-        setIsUploading(false);
-        handleForceUpdate();
+        body: formData
+      });
+  
+      const result = await response.json();
+      console.log("Files uploaded:", result);
     } catch (error) {
-      console.error("Error during file upload")
+      console.error("Error uploading files", error);
     }
-
   };
+  
+  const uploadFile = async (e) => {
+    const files = e.target.files;
+    const chatId = chat_id;
+  
+    setIsUploading(true);
+  
+    try {
+      const uploadUrl = await uploadMetadata(chatId);
+      await uploadFiles(files, uploadUrl);
+      setIsUploading(false);
+      handleForceUpdate();
+    } catch (error) {
+      console.error("Error during file upload", error);
+      setIsUploading(false);
+    }
+  };
+  
 
   const handleUploadBtnClick = () => {
     fileInputRef.current.click();

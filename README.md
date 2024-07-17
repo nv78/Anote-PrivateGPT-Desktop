@@ -16,7 +16,7 @@ To include the db: `pyinstaller --onefile app.py --add-data "database.db:."`
 
 Note: might have to do `pyinstaller --onefile app.py --hidden-import flask`
 
-Put the flask app in appdist
+Put the flask app, which is in the folder backend/dist in appdist
 
 6. Open frontend folder in terminal
 `cd ..`
@@ -32,6 +32,8 @@ Put the flask app in appdist
 9. Install all dependencies and run electron
 `npm install`
 `npm start`
+
+10. To package/bundle, run for mac: `npm run make`, and for Linux: `sudo npx electron-forge make --platform=linux --arch=x64`
 
 
 Install private models (should include this under installation instructions under the app later):
