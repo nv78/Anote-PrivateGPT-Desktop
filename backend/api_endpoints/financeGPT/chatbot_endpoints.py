@@ -1,7 +1,6 @@
 import sqlite3
 import os
 import openai
-from langchain_community.embeddings import OllamaEmbeddings
 import os
 #import ray
 import numpy as np
@@ -14,8 +13,6 @@ import sys
 #sec_api_key=os.environ.get('sec_api_key')
 sec_api_key="105d85762b9138da11aa136b3313112c93888324437c9aff80c3babfa607ac34"
 
-
-embeddings = OllamaEmbeddings()
 
 USER_ID = 1
 
