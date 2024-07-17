@@ -285,33 +285,33 @@ def add_document_to_db(text, document_name, chat_id):
 
 #@ray.remote
 def chunk_document(text, maxChunkSize, document_id):
-    # conn, cursor = get_db_connection()
+    conn, cursor = get_db_connection()
 
-    # chunks = []
-    # startIndex = 0
+    chunks = []
+    startIndex = 0
     
-    # while startIndex < len(text):
-    #     endIndex = startIndex + min(maxChunkSize, len(text))
-    #     chunkText = text[startIndex:endIndex]
-    #     chunkText = chunkText.replace("\n", "")
+    while startIndex < len(text):
+        endIndex = startIndex + min(maxChunkSize, len(text))
+        chunkText = text[startIndex:endIndex]
+        chunkText = chunkText.replace("\n", "")
 
-    #     embeddingVector = openai.embeddings.create(input=chunkText, model="text-embedding-ada-002").data[0].embedding
-    #     embeddingVector = np.array(embeddingVector)
-    #     blob = embeddingVector.tobytes()
-    #     chunks.append({
-    #         "text": chunkText,
-    #         "start_index": startIndex,
-    #         "end_index": endIndex,
-    #         "embedding_vector": embeddingVector,
-    #         "embedding_vector_blob": blob,
-    #     })
-    #     startIndex += maxChunkSize
+        embeddingVector = openai.embeddings.create(input=chunkText, model="text-embedding-ada-002").data[0].embedding
+        embeddingVector = np.array(embeddingVector)
+        blob = embeddingVector.tobytes()
+        chunks.append({
+            "text": chunkText,
+            "start_index": startIndex,
+            "end_index": endIndex,
+            "embedding_vector": embeddingVector,
+            "embedding_vector_blob": blob,
+        })
+        startIndex += maxChunkSize
 
-    # for chunk in chunks:
-    #     cursor.execute('INSERT INTO chunks (start_index, end_index, document_id, embedding_vector) VALUES (?,?,?,?)', [chunk["start_index"], chunk["end_index"], document_id, chunk["embedding_vector_blob"]])
+    for chunk in chunks:
+        cursor.execute('INSERT INTO chunks (start_index, end_index, document_id, embedding_vector) VALUES (?,?,?,?)', [chunk["start_index"], chunk["end_index"], document_id, chunk["embedding_vector_blob"]])
 
-    # conn.commit()
-    # conn.close()
+    conn.commit()
+    conn.close()
 
 
 def knn(x, y):
