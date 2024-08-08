@@ -401,7 +401,7 @@ const Chatbot = (props) => {
               </div>
             </div>
             <hr />
-            <div className="flex flex-col space-y-2 h-[70vh] overflow-y-scroll relative">
+            <div className="flex flex-col space-y-2 h-[70vh] overflow-y-auto relative">
               {messages.map((msg, index) => (
                 <div
                   key={index}

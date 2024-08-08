@@ -212,7 +212,7 @@ function ChatHistory(props) {
   ) : null;
 
   return (
-    <div className="flex flex-col px-4 mt-4 bg-[#2A2C38] rounded-xl py-4 my-4 min-h-[35vh] h-[35vh] overflow-y-scroll">
+    <div className="flex flex-col px-4 mt-4 bg-[#2A2C38] rounded-xl py-4 my-4 min-h-[35vh] h-[35vh]">
       {deleteConfirmationPopupChat}
       {renameModal}
       <div className="flex flex-row justify-between items-center">
@@ -244,6 +244,7 @@ function ChatHistory(props) {
           <FontAwesomeIcon icon={faPenToSquare} />
         </button>
       </div>
+      <div className="overflow-y-auto">
       {/* Map through chats */}
       {chats.map((chat) => (
         <div
@@ -291,6 +292,7 @@ function ChatHistory(props) {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
