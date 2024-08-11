@@ -1,7 +1,7 @@
 # Anote-PrivateGPT-Desktop
 
 ## How to run it locally
-1. Clone the repo `git clone https://github.com/nv78/Anote-PrivateGPT-Desktop` and `cd Anote-Private-GPT`
+1. Clone the repo `git clone https://github.com/nv78/Anote-PrivateGPT-Desktop` and `cd Anote-PrivateGPT-Desktop`
 
 ### Backend
 First, compile the backend
