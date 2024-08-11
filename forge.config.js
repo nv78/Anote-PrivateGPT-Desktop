@@ -6,7 +6,11 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: "PrivateGPT",
+        authors: "Anote",
+        noMsi: true
+      },
     },
     {
       name: '@electron-forge/maker-zip',

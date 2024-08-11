@@ -37,7 +37,9 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "your_app_name"
+            "name": "PrivateGPT",
+            "authors": "Anote",
+            "noMsi": true
           }
         },
         {
