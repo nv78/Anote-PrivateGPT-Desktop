@@ -8,7 +8,8 @@ First, compile the backend
 1. `cd backend`
 2. Create a virtual env in 
 `python -m venv venv`
-`source venv/bin/activate`
+`source venv/bin/activate` \
+For Windows: use Command Prompt `.\venv\Scripts\Activate`
 
 3. Install requirements
 `pip install -r requirements.txt`
@@ -42,7 +43,8 @@ To Run the code:
 
 2. Create a virtual env in 
 `python -m venv venv`
-`source venv/bin/activate`
+`source venv/bin/activate` \
+For Windows: use Command Prompt `.\venv\Scripts\Activate`
 
 3. Install pyinstaller
 `pip install pyinstaller`
