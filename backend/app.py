@@ -73,8 +73,9 @@ def check_models():
     base_path = os.path.expanduser('~/.ollama/models/manifests/registry.ollama.ai/library')
     llama2_exists = os.path.isdir(os.path.join(base_path, 'llama2'))
     mistral_exists = os.path.isdir(os.path.join(base_path, 'mistral'))
-    print("llama and mistral", llama2_exists, mistral_exists)
-    return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists})
+    swallow_exists = os.path.isdir(os.path.join(base_path, 'swallow'))
+    print("llama and mistral and swallow", llama2_exists, mistral_exists, swallow_exists)
+    return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists, 'swallow_exists': swallow_exists})
 
 def run_llama_async():
     ollama_path = '/usr/local/bin/ollama'
@@ -507,7 +508,7 @@ def process_message_pdf():
             answer = response['message']['content']
         except Exception as e:
             return jsonify({"error": "Error with llama2"}), 500
-    else:
+    elif (model_type == 1):
         print("using mistral")
         try:
             response = ollama.chat(model='mistral', messages=[
@@ -520,6 +521,18 @@ def process_message_pdf():
             answer = response['message']['content']
         except Exception as e:
             return jsonify({"error": "Error with Mistral"}), 500
+    elif (model_type == 2):
+        print("Swallowモデルを使用する")
+        try:
+            response = ollama.chat(model='swallow', messages=[
+                {
+                'role': 'user',
+                'content': f'あなたはアップロードされたドキュメントに関する質問に答える事実ベースのチャットボットです。テキストに見つけた情報のみで回答し、外部の情報は使用しません。これがテキストからの情報源です:{sources_str} そしてこれが質問です:{query}.',
+                },
+            ])
+            answer = response['message']['content']
+        except Exception as e:
+            return jsonify({"error": "Error with Swallow"}), 500
 
     #This adds bot message
     message_id = add_message_to_db(answer, chat_id, 0)
