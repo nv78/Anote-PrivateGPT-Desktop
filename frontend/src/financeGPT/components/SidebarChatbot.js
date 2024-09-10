@@ -143,13 +143,14 @@ function SidebarChatbot(props) {
               </button>
             </div>
           ))}
-        </div> 
+        </div>
       </div>
     </div>
     <div className="mt-4">
       <Sources
         onChatSelect={props.onChatSelect}
-        setIsPrivate={props.setIsPrivate}
+        set
+        ={props.setIsPrivate}
         setTicker={props.setTicker}
         setConfirmedModelKey={props.setConfirmedModelKey}
         setcurrTask={props.setcurrTask}
