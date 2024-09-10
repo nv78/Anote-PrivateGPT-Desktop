@@ -9,7 +9,7 @@ import ChatbotEdgar from "./chatbot_subcomponents/ChatbotEdgar";
 function HomeChatbot() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [isPrivate, setIsPrivate] = useState(0);
+  const [isPrivate, setIsPrivate] = useState(2);
   const [currChatName, setCurrChatName] = useState("");
   const [currTask, setcurrTask] = useState(0); //0 is file upload, 1 EDGAR, 2 mySQL db; have 0 be the default
   const [ticker, setTicker] = useState("");

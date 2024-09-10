@@ -12,7 +12,7 @@ function NavbarChatbot(props) {
   const [showConfirmResetKey, setShowConfirmResetKey] = useState(false);
   const [pendingModel, setPendingModel] = useState(props.isPrivate);
   const [modelKey, setModelKey] = useState("");
-  const [modifyIsPrivate, setModifyIsPrivate] = useState(props.isPrivate);
+  const [modifyIsPrivate, setModifyIsPrivate] = useState(0);
 
   const urlObject = new URL(window.location.origin);
   var hostname = urlObject.hostname;
@@ -32,7 +32,8 @@ function NavbarChatbot(props) {
   }, [props.confirmedModelKey]);
 
   const handleSwitchChange = (newModel) => {
-    setModifyIsPrivate(newModel);
+    const val = (newModel === "LLaMa") ? 0 : (newModel === "Mistral") ? 1 : 2;
+    setModifyIsPrivate(val);
     setShowConfirmPopup(true);
   };
 
@@ -110,7 +111,7 @@ function NavbarChatbot(props) {
       body: JSON.stringify({
         chat_id: props.selectedChatId,
         model_type: isPrivate,
-      }), //model_type=1 when mistral, model_type=0 when llama
+      }), //model_type=1 when mistral, model_type=0 when llama, model_type=2 when Swallow
     })
       .then((response) => {
       })
