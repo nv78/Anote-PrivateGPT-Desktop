@@ -12,6 +12,7 @@ function NavbarChatbot(props) {
   const [showConfirmResetKey, setShowConfirmResetKey] = useState(false);
   const [pendingModel, setPendingModel] = useState(props.isPrivate);
   const [modelKey, setModelKey] = useState("");
+  const [modifyIsPrivate, setModifyIsPrivate] = useState(0);
 
   const urlObject = new URL(window.location.origin);
   var hostname = urlObject.hostname;
@@ -30,12 +31,14 @@ function NavbarChatbot(props) {
     props.handleForceUpdate();
   }, [props.confirmedModelKey]);
 
-  const handleSwitchChange = () => {
+  const handleSwitchChange = (newModel) => {
+    const val = (newModel === "llama2") ? 0 : (newModel === "mistral") ? 1 : 2;
+    setModifyIsPrivate(val);
     setShowConfirmPopup(true);
   };
 
   const confirmSwitchChange = () => {
-    props.setIsPrivate((prevState) => 1 - prevState); //toggle true or false
+    props.setIsPrivate(modifyIsPrivate);
     changeChatMode(props.isPrivate);
     setShowConfirmPopup(false);
   };
@@ -108,7 +111,7 @@ function NavbarChatbot(props) {
       body: JSON.stringify({
         chat_id: props.selectedChatId,
         model_type: isPrivate,
-      }), //model_type=1 when mistral, model_type=0 when llama
+      }), //model_type=1 when mistral, model_type=0 when llama, model_type=2 when Swallow
     })
       .then((response) => {
       })
@@ -255,6 +258,8 @@ function NavbarChatbot(props) {
     zIndex: 999, // Ensure it's below the popup but above everything else
   };
 
+  console.log("isPrivate: ", props.isPrivate);
+
   return (
     // <nav className="relative h-screen left-0 w-44 bg-[#1A1922] text-white z-30">
     //   <div className="flex flex-col items-center font-medium justify-around h-full">
@@ -367,11 +372,12 @@ function NavbarChatbot(props) {
                   name="publicOptions"
                   id="publicOptions"
                   className="bg-[#3A3B41] rounded-lg focus:ring-0 hover:ring-0 hover:border-white border-none text-white cursor-pointer"
-                  onChange={handleSwitchChange}
-                  value={props.isPrivate === 0 ? "llama2" : "mistral"}
+                  onChange={(e) => handleSwitchChange(e.target.value)}
+                  value={props.isPrivate === 0 ? "llama2" : props.isPrivate === 1 ? "mistral" : "swallow"}
                 >
                   <option value="llama2">LLaMA 2</option>
                   <option value="mistral">Mistral</option>
+                  <option value="swallow">Swallow</option>
                 </select>
               </div>
             </div>

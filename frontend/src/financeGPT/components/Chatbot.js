@@ -191,11 +191,34 @@ const Chatbot = (props) => {
           setProgress(status.progress);
           setTimeout(pollOllamaStatus, 3000); // Continue polling
         }
-      } else {
+      } else if (props.isPrivate === 1) {
         const response = await fetcher('/mistral-status', { method: 'POST' });
         const status = await response.json();
 
         console.log("status mistral is", status)
+
+        if (status.progress === 100) {
+          setIsLoading(false);
+          setShowInstallationModal(false);
+          setProgress(0);
+          setTimeLeft('');
+        }
+
+        if (!status.running && status.completed) {
+          setIsLoading(false); // Stop the loading indicator
+          setProgress(100);
+          setTimeLeft('');
+          setShowInstallationModal(false);
+        } else {
+          setTimeLeft(status.time_left || 'Calculating time left...');
+          setProgress(status.progress);
+          setTimeout(pollOllamaStatus, 3000); // Continue polling
+        }
+      } else {
+        const response = await fetcher('/swallow-status', { method: 'POST' });
+        const status = await response.json();
+
+        console.log("status swallow is", status)
 
         if (status.progress === 100) {
           setIsLoading(false);
@@ -242,8 +265,21 @@ const Chatbot = (props) => {
           console.error(responseData.message);
           setIsLoading(false);
         }
-      } else {
+      } else if (props.isPrivate === 1) {
         const response = await fetcher("/install-mistral", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        const responseData = await response.json();
+        if (!responseData.success) {
+          console.error(responseData.message);
+          setIsLoading(false);
+        }
+      } else {
+        const response = await fetcher("/install-swallow", {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -299,7 +335,7 @@ const Chatbot = (props) => {
                 <div style={{ height: '20px', width: `${progress}%`, backgroundColor: '#4CAF50' }}></div> {/* This div represents the loading progress */}
               </div>
             ) : (
-              <div className="my-2 w-full text-center">You have not installed {props.isPrivate === 0 ? "LLaMa" : "Mistral"}. Please install below</div>
+              <div className="my-2 w-full text-center">You have not installed {props.isPrivate === 0 ? "LLaMa" : props.isPrivate === 1 ? "Mistral" : "Swallow"}. Please install below</div>
             )}
             <p>{timeLeft}</p> {/* Display the time left */}
           </div>
@@ -309,7 +345,7 @@ const Chatbot = (props) => {
               disabled={isLoading} // Disable button when loading
               className={`w-1/2 mx-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-900 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              Download {props.isPrivate === 0 ? "LLaMa" : "Mistral"}
+              Download {props.isPrivate === 0 ? "LLaMa" : props.isPrivate === 1 ? "Mistral" : "Swallow"}
             </button>
           </div>
         </div>
