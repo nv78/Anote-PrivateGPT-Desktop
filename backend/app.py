@@ -73,7 +73,7 @@ def check_models():
     base_path = os.path.expanduser('~/.ollama/models/manifests/registry.ollama.ai/library')
     llama2_exists = os.path.isdir(os.path.join(base_path, 'llama2'))
     mistral_exists = os.path.isdir(os.path.join(base_path, 'mistral'))
-    swallow_exists = os.path.isdir(os.path.join(base_path, 'swallow'))
+    swallow_exists = os.path.isdir(os.path.join('~/.ollama/models/manifests/registry.ollama.ai/lucas2024', 'llama-3-swallow-8b-v0.1'))
     print("llama and mistral and swallow", llama2_exists, mistral_exists, swallow_exists)
     return jsonify({'llama2_exists': llama2_exists, 'mistral_exists': mistral_exists, 'swallow_exists': swallow_exists})
 
