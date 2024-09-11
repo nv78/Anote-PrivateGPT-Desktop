@@ -32,7 +32,7 @@ function NavbarChatbot(props) {
   }, [props.confirmedModelKey]);
 
   const handleSwitchChange = (newModel) => {
-    const val = (newModel === "LLaMa") ? 0 : (newModel === "Mistral") ? 1 : 2;
+    const val = (newModel === "llama2") ? 0 : (newModel === "mistral") ? 1 : 2;
     setModifyIsPrivate(val);
     setShowConfirmPopup(true);
   };
@@ -258,6 +258,8 @@ function NavbarChatbot(props) {
     zIndex: 999, // Ensure it's below the popup but above everything else
   };
 
+  console.log("isPrivate: ", props.isPrivate);
+
   return (
     // <nav className="relative h-screen left-0 w-44 bg-[#1A1922] text-white z-30">
     //   <div className="flex flex-col items-center font-medium justify-around h-full">
@@ -371,7 +373,7 @@ function NavbarChatbot(props) {
                   id="publicOptions"
                   className="bg-[#3A3B41] rounded-lg focus:ring-0 hover:ring-0 hover:border-white border-none text-white cursor-pointer"
                   onChange={(e) => handleSwitchChange(e.target.value)}
-                  value={props.isPrivate === 0 ? "LLaMa" : props.isPrivate === 1 ? "Mistral" : "Swallow"}
+                  value={props.isPrivate === 0 ? "llama2" : props.isPrivate === 1 ? "mistral" : "swallow"}
                 >
                   <option value="llama2">LLaMA 2</option>
                   <option value="mistral">Mistral</option>

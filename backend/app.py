@@ -152,7 +152,7 @@ def run_swallow_async():
     ollama_path = '/usr/local/bin/ollama'
     # For Windows
     # ollama_path = os.path.join(os.getenv('LOCALAPPDATA'), 'Programs', 'Ollama', 'ollama.exe')
-    command = [ollama_path, 'run', 'swallow']
+    command = [ollama_path, 'run', 'lucas2024/llama-3-swallow-8b-v0.1:q5_k_m']
 
     # Regular expression to match the time left message format
     time_left_regex = re.compile(r'\b\d+m\d+s\b')
